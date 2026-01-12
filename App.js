@@ -747,8 +747,10 @@ const App = () => {
 
   // Check if needs onboarding
   if (checkNeedsOnboarding()) {
-    startOnboarding(type); // Pass type directly to avoid async state issue
+    setNeedsOnboarding(true); // Set BEFORE async call to prevent UI flash
+    setOnboardingLoading(true); // Set loading state immediately
     setRecommendStep(0.5); // Special step for onboarding
+    startOnboarding(type); // Now start the async loading
   } else {
     setRecommendStep(1);
   }
