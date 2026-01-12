@@ -744,15 +744,15 @@ const App = () => {
   setRecommendType(type);
   setRecommendation(null);
   setRecommendationExplanation(null);
-  
+
   // Check if needs onboarding
   if (checkNeedsOnboarding()) {
-    startOnboarding();
+    startOnboarding(type); // Pass type directly to avoid async state issue
     setRecommendStep(0.5); // Special step for onboarding
   } else {
     setRecommendStep(1);
   }
-  
+
   setCurrentScreen(SCREENS.RECOMMEND);
 };
 
@@ -1265,14 +1265,17 @@ const enterWatchNext = () => {
     return ONBOARDING_FOLLOWUP_COUNT;
   };
 
-  const startOnboarding = async () => {
+  const startOnboarding = async (type) => {
+    // Use passed type parameter to avoid async state timing issues
+    const contentType = type || recommendType || 'movie';
+
     setNeedsOnboarding(true); // Set immediately to prevent black screen
     setOnboardingLoading(true);
     setOnboardingIndex(0);
     setOnboardingRatings({});
-    
+
     try {
-      const contentList = ONBOARDING_CONTENT[recommendType] || ONBOARDING_CONTENT.movie;
+      const contentList = ONBOARDING_CONTENT[contentType] || ONBOARDING_CONTENT.movie;
       const count = getOnboardingCount();
       
       // Get IDs of already rated content (liked, skipped, or in watchlist)
@@ -1297,11 +1300,11 @@ const enterWatchNext = () => {
       }
       
       // Fetch details for selected content
-      const endpoint = recommendType === 'tv' ? 'tv' : 'movie';
+      const endpoint = contentType === 'tv' ? 'tv' : 'movie';
       const contentPromises = availableContent.map(item =>
         axios.get(`https://api.themoviedb.org/3/${endpoint}/${item.id}`, {
           params: { api_key: TMDB_API_KEY, language: 'en-US' }
-        }).then(res => ({ ...res.data, onboardingGenre: item.genre, mediaType: recommendType }))
+        }).then(res => ({ ...res.data, onboardingGenre: item.genre, mediaType: contentType }))
         .catch(() => null)
       );
       
