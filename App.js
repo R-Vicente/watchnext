@@ -1277,55 +1277,78 @@ const enterWatchNext = () => {
     try {
       const contentList = ONBOARDING_CONTENT[contentType] || ONBOARDING_CONTENT.movie;
       const count = getOnboardingCount();
-      
+
+      console.log('🎬 Onboarding - contentType:', contentType);
+      console.log('🎬 Onboarding - contentList length:', contentList?.length);
+
       // Get IDs of already rated content (liked, skipped, or in watchlist)
       const alreadyRatedIds = [
         ...likedList.map(l => l.id),
         ...skippedList.map(s => s.id),
         ...watchlist.map(w => w.id),
       ];
-      
+
+      console.log('🎬 Onboarding - alreadyRatedIds:', alreadyRatedIds.length);
+
       // Filter out already rated and shuffle
       const availableContent = contentList
         .filter(c => !alreadyRatedIds.includes(c.id))
         .sort(() => Math.random() - 0.5)
         .slice(0, count);
-      
+
+      console.log('🎬 Onboarding - availableContent:', availableContent.length, availableContent.map(c => c.id));
+
       if (availableContent.length === 0) {
-        // No more content to rate, mark as complete
+        // No more content to rate, skip onboarding
+        console.log('🎬 Onboarding - No available content, skipping');
         setOnboardingComplete(true);
         setOnboardingLoading(false);
+        setNeedsOnboarding(false);
         setRecommendStep(1);
         return;
       }
-      
+
       // Fetch details for selected content
       const endpoint = contentType === 'tv' ? 'tv' : 'movie';
+      console.log('🎬 Onboarding - fetching from endpoint:', endpoint);
+
       const contentPromises = availableContent.map(item =>
         axios.get(`https://api.themoviedb.org/3/${endpoint}/${item.id}`, {
           params: { api_key: TMDB_API_KEY, language: 'en-US' }
-        }).then(res => ({ ...res.data, onboardingGenre: item.genre, mediaType: contentType }))
-        .catch(() => null)
+        }).then(res => {
+          console.log('🎬 Onboarding - fetched:', item.id, res.data?.title || res.data?.name);
+          return { ...res.data, onboardingGenre: item.genre, mediaType: contentType };
+        })
+        .catch((err) => {
+          console.error('🎬 Onboarding - fetch failed for:', item.id, err.message);
+          return null;
+        })
       );
-      
+
       const results = await Promise.all(contentPromises);
       const validContent = results.filter(m => m !== null);
-      
+
+      console.log('🎬 Onboarding - validContent:', validContent.length);
+
       if (validContent.length === 0) {
+        // All fetches failed, skip onboarding
+        console.log('🎬 Onboarding - All fetches failed, skipping');
         setOnboardingComplete(true);
+        setNeedsOnboarding(false);
+        setOnboardingLoading(false);
         setRecommendStep(1);
       } else {
         setOnboardingMovies(validContent);
         setNeedsOnboarding(true);
+        setOnboardingLoading(false);
       }
     } catch (error) {
       console.error('Onboarding error:', error);
       showToast('Could not load taste profile', 'error');
       setNeedsOnboarding(false);
+      setOnboardingLoading(false);
       setRecommendStep(1);
     }
-    
-    setOnboardingLoading(false);
   };
 
   const handleOnboardingRate = (movieId, rating) => {
