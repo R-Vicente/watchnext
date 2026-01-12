@@ -962,7 +962,7 @@ const enterWatchNext = () => {
 
   const generateRecommendation = async () => {
     setRecommendLoading(true);
-    
+
     try {
       const userPrefs = analyzeUserPreferences();
       const weights = calculateWeights(recommendMood, recommendDuration);
@@ -972,71 +972,157 @@ const enterWatchNext = () => {
       const moodKeywords = recommendSubMood?.keywords || null;
       const durationData = DURATION_OPTIONS.find(d => d.id === recommendDuration);
 
-      // Build API params
-      const params = {
+      // Helper function to fetch with given params
+      const fetchWithParams = async (searchParams) => {
+        const response = await axios.get(
+          `https://api.themoviedb.org/3/discover/${recommendType}`,
+          { params: searchParams }
+        );
+        return response.data.results.filter(item =>
+          item.poster_path &&
+          !isInWatchlist(item.id) &&
+          !isInLiked(item.id) &&
+          !skippedList.some(s => s.id === item.id) &&
+          !suggestedIds.includes(item.id)
+        );
+      };
+
+      // Build base API params (less restrictive defaults)
+      const baseParams = {
         api_key: TMDB_API_KEY,
         language: 'en-US',
         sort_by: 'popularity.desc',
-        page: Math.floor(Math.random() * 3) + 1,
-        'vote_count.gte': 100,
-        'vote_average.gte': Math.max(6, (userPrefs.avgRating || 7) - 1),
+        'vote_count.gte': 50, // Lowered from 100
       };
-
-// Add mood genres - prioritize mood selection
-if (moodGenres.length > 0 && recommendMood !== 'surprise') {
-  // Use comma for AND logic (must have ALL genres)
-  // This ensures "romantic comedy" returns films that are BOTH comedy AND romance
-  params.with_genres = moodGenres.join(',');
-} else if (recommendMood === 'surprise' && userPrefs.topGenres.length > 0) {
-  // Only use user prefs for surprise mode (OR logic - any of these genres)
-  params.with_genres = userPrefs.topGenres.slice(0, 2).map(g => g.id).join('|');
-}
-// If no mood and no history, don't filter by genre (get popular)
-
-      // Duration filter for movies
-      if (recommendType === 'movie' && durationData && recommendDuration !== 'any') {
-        if (durationData.max) params['with_runtime.lte'] = durationData.max;
-        if (durationData.min) params['with_runtime.gte'] = durationData.min;
-      }
 
       // Language filter
       if (recommendLanguage === 'original') {
-        params.with_original_language = 'en';
+        baseParams.with_original_language = 'en';
       } else if (recommendLanguage === 'local' && userLanguage) {
-        params.with_original_language = userLanguage;
+        baseParams.with_original_language = userLanguage;
       }
 
-      console.log('🎯 Recommendation params:', {
-        mood: recommendMood,
-        moodGenres,
-        params_genres: params.with_genres,
-        userTopGenres: userPrefs.topGenres.map(g => g.id)
-      });
+      // Duration filter for movies
+      if (recommendType === 'movie' && durationData && recommendDuration !== 'any') {
+        if (durationData.max) baseParams['with_runtime.lte'] = durationData.max;
+        if (durationData.min) baseParams['with_runtime.gte'] = durationData.min;
+      }
 
-      const response = await axios.get(
-        `https://api.themoviedb.org/3/discover/${recommendType}`,
-        { params }
-      );
+      let allCandidates = [];
 
-      const candidates = response.data.results.filter(item => 
-        item.poster_path && 
-        !isInWatchlist(item.id) && 
-        !isInLiked(item.id) &&
-        !skippedList.some(s => s.id === item.id) &&
-        !suggestedIds.includes(item.id) // Exclude already suggested
-      );
+      // Strategy 1: Try with ALL genres (AND logic) - most specific
+      if (moodGenres.length > 0 && recommendMood !== 'surprise') {
+        const params1 = { ...baseParams, with_genres: moodGenres.join(','), page: 1 };
+        const params2 = { ...baseParams, with_genres: moodGenres.join(','), page: 2 };
+        const params3 = { ...baseParams, with_genres: moodGenres.join(','), page: 3 };
 
-      if (candidates.length === 0) {
+        const [results1, results2, results3] = await Promise.all([
+          fetchWithParams(params1).catch(() => []),
+          fetchWithParams(params2).catch(() => []),
+          fetchWithParams(params3).catch(() => [])
+        ]);
+        allCandidates = [...results1, ...results2, ...results3];
+
+        console.log('🎯 Strategy 1 (AND genres):', allCandidates.length, 'candidates');
+      }
+
+      // Strategy 2: If not enough, try with ANY genre (OR logic)
+      if (allCandidates.length < 5 && moodGenres.length > 1 && recommendMood !== 'surprise') {
+        const paramsOr1 = { ...baseParams, with_genres: moodGenres.join('|'), page: 1 };
+        const paramsOr2 = { ...baseParams, with_genres: moodGenres.join('|'), page: 2 };
+
+        const [resultsOr1, resultsOr2] = await Promise.all([
+          fetchWithParams(paramsOr1).catch(() => []),
+          fetchWithParams(paramsOr2).catch(() => [])
+        ]);
+
+        // Add unique items only
+        const existingIds = new Set(allCandidates.map(c => c.id));
+        const newItems = [...resultsOr1, ...resultsOr2].filter(item => !existingIds.has(item.id));
+        allCandidates = [...allCandidates, ...newItems];
+
+        console.log('🎯 Strategy 2 (OR genres):', allCandidates.length, 'total candidates');
+      }
+
+      // Strategy 3: If still not enough, try just the primary genre
+      if (allCandidates.length < 5 && moodGenres.length > 0) {
+        const primaryGenre = moodGenres[0];
+        const paramsPrimary1 = { ...baseParams, with_genres: primaryGenre.toString(), page: 1 };
+        const paramsPrimary2 = { ...baseParams, with_genres: primaryGenre.toString(), page: 2 };
+
+        const [resultsPrimary1, resultsPrimary2] = await Promise.all([
+          fetchWithParams(paramsPrimary1).catch(() => []),
+          fetchWithParams(paramsPrimary2).catch(() => [])
+        ]);
+
+        const existingIds = new Set(allCandidates.map(c => c.id));
+        const newItems = [...resultsPrimary1, ...resultsPrimary2].filter(item => !existingIds.has(item.id));
+        allCandidates = [...allCandidates, ...newItems];
+
+        console.log('🎯 Strategy 3 (primary genre only):', allCandidates.length, 'total candidates');
+      }
+
+      // Strategy 4: Surprise mode or final fallback - popular content
+      if (allCandidates.length < 5 || recommendMood === 'surprise') {
+        let fallbackParams = { ...baseParams, page: Math.floor(Math.random() * 5) + 1 };
+
+        // For surprise, use user preferences if available
+        if (recommendMood === 'surprise' && userPrefs.topGenres.length > 0) {
+          fallbackParams.with_genres = userPrefs.topGenres.slice(0, 2).map(g => g.id).join('|');
+        }
+
+        const resultsFallback = await fetchWithParams(fallbackParams).catch(() => []);
+
+        const existingIds = new Set(allCandidates.map(c => c.id));
+        const newItems = resultsFallback.filter(item => !existingIds.has(item.id));
+        allCandidates = [...allCandidates, ...newItems];
+
+        console.log('🎯 Strategy 4 (fallback/surprise):', allCandidates.length, 'total candidates');
+      }
+
+      // Strategy 5: Last resort - remove duration filter and try again
+      if (allCandidates.length < 3 && recommendType === 'movie' && recommendDuration !== 'any') {
+        const relaxedParams = { ...baseParams, page: 1 };
+        delete relaxedParams['with_runtime.lte'];
+        delete relaxedParams['with_runtime.gte'];
+
+        if (moodGenres.length > 0) {
+          relaxedParams.with_genres = moodGenres[0].toString();
+        }
+
+        const resultsRelaxed = await fetchWithParams(relaxedParams).catch(() => []);
+
+        const existingIds = new Set(allCandidates.map(c => c.id));
+        const newItems = resultsRelaxed.filter(item => !existingIds.has(item.id));
+        allCandidates = [...allCandidates, ...newItems];
+
+        console.log('🎯 Strategy 5 (relaxed duration):', allCandidates.length, 'total candidates');
+      }
+
+      console.log('🎯 Final candidates count:', allCandidates.length);
+
+      if (allCandidates.length === 0) {
         showToast('No matches found. Try different options.', 'warning');
         setRecommendLoading(false);
         return;
       }
 
       // Score all candidates
-      let scored = candidates.map(item => ({
+      let scored = allCandidates.map(item => ({
         item,
         ...scoreContent(item, userPrefs, weights, moodGenres, durationData)
-      })).filter(s => s.score > 0);
+      }));
+
+      // Filter to positive scores, but keep at least some if all are zero/negative
+      const positiveScored = scored.filter(s => s.score > 0);
+      if (positiveScored.length > 0) {
+        scored = positiveScored;
+      } else {
+        // Keep top items by raw popularity if no positive scores
+        scored = scored.sort((a, b) => (b.item.popularity || 0) - (a.item.popularity || 0)).slice(0, 10);
+        // Give them a minimal positive score
+        scored = scored.map(s => ({ ...s, score: 0.5 }));
+      }
 
       // Apply collaborative filtering boost
       scored = await getCollaborativeBoost(scored, userPrefs);
@@ -1180,6 +1266,7 @@ if (moodGenres.length > 0 && recommendMood !== 'surprise') {
   };
 
   const startOnboarding = async () => {
+    setNeedsOnboarding(true); // Set immediately to prevent black screen
     setOnboardingLoading(true);
     setOnboardingIndex(0);
     setOnboardingRatings({});
@@ -2092,7 +2179,6 @@ if (moodGenres.length > 0 && recommendMood !== 'surprise') {
           )}
 
           {/* Step 1: Mood */}
-{/* Step 1: Mood */}
           {recommendStep === 1 && !recommendMood && (
             <View style={styles.recommendSection}>
               <View style={styles.stepIndicator}>
@@ -2159,20 +2245,32 @@ if (moodGenres.length > 0 && recommendMood !== 'surprise') {
                     </Text>
                     
                     <View style={styles.subMoodList}>
-                      {selectedMood?.subOptions?.map((sub) => (
-                        <TouchableOpacity 
-                          key={sub.id}
-                          style={[styles.subMoodCard, { backgroundColor: theme.surface }]} 
-                          onPress={() => {
-                            setRecommendSubMood(sub);
-                            setRecommendStep(2);
-                          }}
+                      {selectedMood?.subOptions && selectedMood.subOptions.length > 0 ? (
+                        selectedMood.subOptions.map((sub) => (
+                          <TouchableOpacity
+                            key={sub.id}
+                            style={[styles.subMoodCard, { backgroundColor: theme.surface }]}
+                            onPress={() => {
+                              setRecommendSubMood(sub);
+                              setRecommendStep(2);
+                            }}
+                          >
+                            <Text style={styles.subMoodEmoji}>{sub.emoji}</Text>
+                            <Text style={[styles.subMoodLabel, { color: theme.text }]}>{sub.label}</Text>
+                            <Text style={[styles.subMoodArrow, { color: theme.textMuted }]}>→</Text>
+                          </TouchableOpacity>
+                        ))
+                      ) : (
+                        // Fallback: no sub-options, auto-advance to step 2
+                        <TouchableOpacity
+                          style={[styles.subMoodCard, { backgroundColor: theme.primary }]}
+                          onPress={() => setRecommendStep(2)}
                         >
-                          <Text style={styles.subMoodEmoji}>{sub.emoji}</Text>
-                          <Text style={[styles.subMoodLabel, { color: theme.text }]}>{sub.label}</Text>
-                          <Text style={[styles.subMoodArrow, { color: theme.textMuted }]}>→</Text>
+                          <Text style={styles.subMoodEmoji}>✨</Text>
+                          <Text style={[styles.subMoodLabel, { color: '#fff' }]}>Continue</Text>
+                          <Text style={[styles.subMoodArrow, { color: 'rgba(255,255,255,0.7)' }]}>→</Text>
                         </TouchableOpacity>
-                      ))}
+                      )}
                     </View>
                   </>
                 );
@@ -2385,6 +2483,64 @@ if (moodGenres.length > 0 && recommendMood !== 'surprise') {
                   }}
                 >
                   <Text style={{ color: theme.textSecondary }}>⚙️ Change options</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Loading state while generating recommendation */}
+          {recommendLoading && (
+            <View style={styles.recommendSection}>
+              <View style={styles.centered}>
+                <ActivityIndicator size="large" color={theme.primary} />
+                <Text style={[styles.loadingText, { color: theme.textSecondary, marginTop: 16 }]}>
+                  Finding the perfect match...
+                </Text>
+                <Text style={[{ color: theme.textMuted, fontSize: 12, marginTop: 8, textAlign: 'center' }]}>
+                  Analyzing your preferences
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Fallback: Step 0.5 but onboarding not needed - skip to step 1 */}
+          {recommendStep === 0.5 && !needsOnboarding && !recommendLoading && (
+            <View style={styles.recommendSection}>
+              <View style={styles.centered}>
+                <ActivityIndicator size="large" color={theme.primary} />
+                <Text style={[styles.loadingText, { color: theme.textSecondary, marginTop: 16 }]}>
+                  Preparing...
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Fallback: Step 4 but no recommendation yet (error state) */}
+          {recommendStep === 4 && !recommendation && !recommendLoading && (
+            <View style={styles.recommendSection}>
+              <View style={styles.centered}>
+                <Text style={{ fontSize: 48, marginBottom: 16 }}>😕</Text>
+                <Text style={[styles.recommendQuestion, { color: theme.text, textAlign: 'center' }]}>
+                  Couldn't find a match
+                </Text>
+                <Text style={[styles.recommendSubtext, { color: theme.textSecondary, textAlign: 'center', marginBottom: 24 }]}>
+                  Try adjusting your preferences
+                </Text>
+                <TouchableOpacity
+                  style={[styles.resultActionBtn, { backgroundColor: theme.primary }]}
+                  onPress={() => {
+                    setRecommendStep(0);
+                    setRecommendType(null);
+                    setRecommendMood(null);
+                    setRecommendSubMood(null);
+                    setRecommendDuration(null);
+                    setRecommendLanguage(null);
+                    setRecommendation(null);
+                    setRecommendationExplanation(null);
+                    setSuggestedIds([]);
+                  }}
+                >
+                  <Text style={styles.resultActionText}>Try Again</Text>
                 </TouchableOpacity>
               </View>
             </View>
