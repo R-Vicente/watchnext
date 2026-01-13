@@ -1,12 +1,26 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { 
+import {
   View, Text, StyleSheet, Image, TouchableOpacity, Dimensions,
   ActivityIndicator, SafeAreaView, FlatList, Modal, ScrollView,
   TextInput, Linking, Alert, Animated, Switch,
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons, MaterialCommunityIcons, MaterialIcons, Feather, FontAwesome5 } from '@expo/vector-icons';
 import { TMDB_API_KEY } from './src/config/constants';
+
+// Icon component for consistent styling
+const Icon = ({ name, family = 'Ionicons', size = 24, color = '#fff', style }) => {
+  const families = {
+    Ionicons,
+    MaterialCommunityIcons,
+    MaterialIcons,
+    Feather,
+    FontAwesome5,
+  };
+  const IconComponent = families[family] || Ionicons;
+  return <IconComponent name={name} size={size} color={color} style={style} />;
+};
 
 const { width, height } = Dimensions.get('window');
 
@@ -75,102 +89,102 @@ const THEMES = {
 
 
 const MOODS = [
-  { 
-    id: 'laugh', 
-    emoji: '😂', 
+  {
+    id: 'laugh',
+    icon: { name: 'happy-outline', family: 'Ionicons' },
     label: 'Laugh',
     genres: [35],
     subOptions: [
-      { id: 'any', label: 'Any comedy', emoji: '🎭', genres: [35] },
-      { id: 'romantic', label: 'Romantic', emoji: '💕', genres: [35, 10749] },
-      { id: 'action', label: 'Action comedy', emoji: '💥', genres: [35, 28] },
-      { id: 'dark', label: 'Dark / Satire', emoji: '🖤', genres: [35], keywords: 'dark comedy,satire' },
-      { id: 'family', label: 'Family friendly', emoji: '👨‍👩‍👧‍👦', genres: [35, 10751] },
+      { id: 'any', label: 'Any comedy', icon: { name: 'theater-masks', family: 'FontAwesome5' }, genres: [35] },
+      { id: 'romantic', label: 'Romantic', icon: { name: 'heart-outline', family: 'Ionicons' }, genres: [35, 10749] },
+      { id: 'action', label: 'Action comedy', icon: { name: 'flash-outline', family: 'Ionicons' }, genres: [35, 28] },
+      { id: 'dark', label: 'Dark / Satire', icon: { name: 'moon-outline', family: 'Ionicons' }, genres: [35], keywords: 'dark comedy,satire' },
+      { id: 'family', label: 'Family friendly', icon: { name: 'people-outline', family: 'Ionicons' }, genres: [35, 10751] },
     ]
   },
-  { 
-    id: 'think', 
-    emoji: '🧠', 
+  {
+    id: 'think',
+    icon: { name: 'bulb-outline', family: 'Ionicons' },
     label: 'Think',
     genres: [18, 9648],
     subOptions: [
-      { id: 'any', label: 'Any', emoji: '🎭', genres: [18, 9648] },
-      { id: 'mystery', label: 'Mystery / Whodunit', emoji: '🔍', genres: [9648] },
-      { id: 'psychological', label: 'Psychological', emoji: '🌀', genres: [18, 53] },
-      { id: 'documentary', label: 'Documentary', emoji: '📹', genres: [99] },
-      { id: 'historical', label: 'Historical', emoji: '📜', genres: [18, 36] },
+      { id: 'any', label: 'Any', icon: { name: 'theater-masks', family: 'FontAwesome5' }, genres: [18, 9648] },
+      { id: 'mystery', label: 'Mystery / Whodunit', icon: { name: 'search-outline', family: 'Ionicons' }, genres: [9648] },
+      { id: 'psychological', label: 'Psychological', icon: { name: 'git-branch-outline', family: 'Ionicons' }, genres: [18, 53] },
+      { id: 'documentary', label: 'Documentary', icon: { name: 'videocam-outline', family: 'Ionicons' }, genres: [99] },
+      { id: 'historical', label: 'Historical', icon: { name: 'book-outline', family: 'Ionicons' }, genres: [18, 36] },
     ]
   },
-  { 
-    id: 'adrenaline', 
-    emoji: '💥', 
+  {
+    id: 'adrenaline',
+    icon: { name: 'flash-outline', family: 'Ionicons' },
     label: 'Adrenaline',
     genres: [28, 53],
     subOptions: [
-      { id: 'any', label: 'Any action', emoji: '🎭', genres: [28, 53] },
-      { id: 'pure', label: 'Pure action', emoji: '🔫', genres: [28] },
-      { id: 'thriller', label: 'Thriller / Suspense', emoji: '😰', genres: [53] },
-      { id: 'crime', label: 'Crime / Heist', emoji: '🦹', genres: [80, 53] },
-      { id: 'war', label: 'War', emoji: '⚔️', genres: [10752, 28] },
+      { id: 'any', label: 'Any action', icon: { name: 'theater-masks', family: 'FontAwesome5' }, genres: [28, 53] },
+      { id: 'pure', label: 'Pure action', icon: { name: 'fitness-outline', family: 'Ionicons' }, genres: [28] },
+      { id: 'thriller', label: 'Thriller / Suspense', icon: { name: 'alert-circle-outline', family: 'Ionicons' }, genres: [53] },
+      { id: 'crime', label: 'Crime / Heist', icon: { name: 'briefcase-outline', family: 'Ionicons' }, genres: [80, 53] },
+      { id: 'war', label: 'War', icon: { name: 'shield-outline', family: 'Ionicons' }, genres: [10752, 28] },
     ]
   },
-  { 
-    id: 'cry', 
-    emoji: '😢', 
+  {
+    id: 'cry',
+    icon: { name: 'heart-outline', family: 'Ionicons' },
     label: 'Feel',
     genres: [18, 10749],
     subOptions: [
-      { id: 'any', label: 'Any drama', emoji: '🎭', genres: [18] },
-      { id: 'romance', label: 'Romance', emoji: '💕', genres: [10749] },
-      { id: 'family', label: 'Family / Heartwarming', emoji: '🏠', genres: [18, 10751] },
-      { id: 'tragedy', label: 'Tragedy / Heavy', emoji: '💔', genres: [18] },
-      { id: 'inspiring', label: 'Inspiring / Uplifting', emoji: '✨', genres: [18], keywords: 'inspiring,uplifting' },
+      { id: 'any', label: 'Any drama', icon: { name: 'theater-masks', family: 'FontAwesome5' }, genres: [18] },
+      { id: 'romance', label: 'Romance', icon: { name: 'heart', family: 'Ionicons' }, genres: [10749] },
+      { id: 'family', label: 'Family / Heartwarming', icon: { name: 'home-outline', family: 'Ionicons' }, genres: [18, 10751] },
+      { id: 'tragedy', label: 'Tragedy / Heavy', icon: { name: 'heart-dislike-outline', family: 'Ionicons' }, genres: [18] },
+      { id: 'inspiring', label: 'Inspiring / Uplifting', icon: { name: 'sparkles-outline', family: 'Ionicons' }, genres: [18], keywords: 'inspiring,uplifting' },
     ]
   },
-  { 
-    id: 'escape', 
-    emoji: '🚀', 
+  {
+    id: 'escape',
+    icon: { name: 'rocket-outline', family: 'Ionicons' },
     label: 'Escape',
     genres: [878, 14],
     subOptions: [
-      { id: 'any', label: 'Any', emoji: '🎭', genres: [878, 14, 12] },
-      { id: 'scifi', label: 'Sci-Fi', emoji: '🛸', genres: [878] },
-      { id: 'fantasy', label: 'Fantasy', emoji: '🧙', genres: [14] },
-      { id: 'adventure', label: 'Adventure', emoji: '🗺️', genres: [12] },
-      { id: 'superhero', label: 'Superhero', emoji: '🦸', genres: [28, 878], keywords: 'superhero,marvel,dc' },
+      { id: 'any', label: 'Any', icon: { name: 'theater-masks', family: 'FontAwesome5' }, genres: [878, 14, 12] },
+      { id: 'scifi', label: 'Sci-Fi', icon: { name: 'planet-outline', family: 'Ionicons' }, genres: [878] },
+      { id: 'fantasy', label: 'Fantasy', icon: { name: 'sparkles', family: 'Ionicons' }, genres: [14] },
+      { id: 'adventure', label: 'Adventure', icon: { name: 'compass-outline', family: 'Ionicons' }, genres: [12] },
+      { id: 'superhero', label: 'Superhero', icon: { name: 'shield-checkmark-outline', family: 'Ionicons' }, genres: [28, 878], keywords: 'superhero,marvel,dc' },
     ]
   },
-  { 
-    id: 'chill', 
-    emoji: '😌', 
+  {
+    id: 'chill',
+    icon: { name: 'cafe-outline', family: 'Ionicons' },
     label: 'Chill',
     genres: [35, 10749],
     subOptions: [
-      { id: 'any', label: 'Easy watch', emoji: '🎭', genres: [35, 10749] },
-      { id: 'feelgood', label: 'Feel-good', emoji: '☀️', genres: [35, 10749] },
-      { id: 'animated', label: 'Animated', emoji: '🎨', genres: [16] },
-      { id: 'music', label: 'Musical', emoji: '🎵', genres: [10402] },
+      { id: 'any', label: 'Easy watch', icon: { name: 'theater-masks', family: 'FontAwesome5' }, genres: [35, 10749] },
+      { id: 'feelgood', label: 'Feel-good', icon: { name: 'sunny-outline', family: 'Ionicons' }, genres: [35, 10749] },
+      { id: 'animated', label: 'Animated', icon: { name: 'color-palette-outline', family: 'Ionicons' }, genres: [16] },
+      { id: 'music', label: 'Musical', icon: { name: 'musical-notes-outline', family: 'Ionicons' }, genres: [10402] },
     ]
   },
-  { 
-    id: 'scare', 
-    emoji: '👻', 
+  {
+    id: 'scare',
+    icon: { name: 'skull-outline', family: 'Ionicons' },
     label: 'Scare',
     genres: [27],
     subOptions: [
-      { id: 'any', label: 'Any horror', emoji: '🎭', genres: [27] },
-      { id: 'supernatural', label: 'Supernatural', emoji: '👻', genres: [27], keywords: 'supernatural,ghost,demon' },
-      { id: 'slasher', label: 'Slasher', emoji: '🔪', genres: [27], keywords: 'slasher' },
-      { id: 'psychological', label: 'Psychological', emoji: '🧠', genres: [27, 53] },
-      { id: 'thriller', label: 'Creepy thriller', emoji: '😨', genres: [53, 9648] },
+      { id: 'any', label: 'Any horror', icon: { name: 'theater-masks', family: 'FontAwesome5' }, genres: [27] },
+      { id: 'supernatural', label: 'Supernatural', icon: { name: 'skull-outline', family: 'Ionicons' }, genres: [27], keywords: 'supernatural,ghost,demon' },
+      { id: 'slasher', label: 'Slasher', icon: { name: 'cut-outline', family: 'Ionicons' }, genres: [27], keywords: 'slasher' },
+      { id: 'psychological', label: 'Psychological', icon: { name: 'bulb-outline', family: 'Ionicons' }, genres: [27, 53] },
+      { id: 'thriller', label: 'Creepy thriller', icon: { name: 'eye-outline', family: 'Ionicons' }, genres: [53, 9648] },
     ]
   },
-  { 
-    id: 'surprise', 
-    emoji: '🎲', 
+  {
+    id: 'surprise',
+    icon: { name: 'dice-outline', family: 'Ionicons' },
     label: 'Surprise me',
     genres: [],
-    subOptions: null // No sub-options for surprise
+    subOptions: null
   },
 ];
 
@@ -217,23 +231,23 @@ const ONBOARDING_INITIAL_COUNT = 10; // First time: 10 items
 const ONBOARDING_FOLLOWUP_COUNT = 3; // Subsequent: 3 items
 
 const DURATION_OPTIONS = [
-  { id: 'short', label: '< 90 min', emoji: '⚡', max: 90 },
-  { id: 'medium', label: '90-120 min', emoji: '🎬', min: 90, max: 120 },
-  { id: 'long', label: '2h+', emoji: '🍿', min: 120 },
-  { id: 'any', label: 'Any length', emoji: '🤷', min: 0, max: 999 },
+  { id: 'short', label: '< 90 min', icon: { name: 'flash-outline', family: 'Ionicons' }, max: 90 },
+  { id: 'medium', label: '90-120 min', icon: { name: 'film-outline', family: 'Ionicons' }, min: 90, max: 120 },
+  { id: 'long', label: '2h+', icon: { name: 'time-outline', family: 'Ionicons' }, min: 120 },
+  { id: 'any', label: 'Any length', icon: { name: 'infinite-outline', family: 'Ionicons' }, min: 0, max: 999 },
 ];
 
 const COMMITMENT_OPTIONS = [
-  { id: 'one', label: '1 episode', emoji: '📺', seasons: 1 },
-  { id: 'night', label: 'One night', emoji: '🌙', seasons: 1 },
-  { id: 'weekend', label: 'Weekend binge', emoji: '🛋️', seasons: [1, 2] },
-  { id: 'long', label: 'Long journey', emoji: '🗺️', seasons: 3 },
+  { id: 'one', label: '1 episode', icon: { name: 'tv-outline', family: 'Ionicons' }, seasons: 1 },
+  { id: 'night', label: 'One night', icon: { name: 'moon-outline', family: 'Ionicons' }, seasons: 1 },
+  { id: 'weekend', label: 'Weekend binge', icon: { name: 'bed-outline', family: 'Ionicons' }, seasons: [1, 2] },
+  { id: 'long', label: 'Long journey', icon: { name: 'map-outline', family: 'Ionicons' }, seasons: 3 },
 ];
 
 const LANGUAGE_OPTIONS = [
-  { id: 'any', label: 'Any language', emoji: '🌍' },
-  { id: 'original', label: 'English only', emoji: '🇬🇧', code: 'en' },
-  { id: 'local', label: 'My language', emoji: '🏠' },
+  { id: 'any', label: 'Any language', icon: { name: 'globe-outline', family: 'Ionicons' } },
+  { id: 'original', label: 'English only', icon: { name: 'language-outline', family: 'Ionicons' }, code: 'en' },
+  { id: 'local', label: 'My language', icon: { name: 'home-outline', family: 'Ionicons' } },
 ];
 
 // ============================================
@@ -1025,7 +1039,7 @@ const enterWatchNext = () => {
         ]);
         allCandidates = [...results1, ...results2, ...results3];
 
-        console.log('🎯 Strategy 1 (AND genres):', allCandidates.length, 'candidates');
+        console.log('[Strategy] Strategy 1 (AND genres):', allCandidates.length, 'candidates');
       }
 
       // Strategy 2: If not enough, try with ANY genre (OR logic)
@@ -1043,7 +1057,7 @@ const enterWatchNext = () => {
         const newItems = [...resultsOr1, ...resultsOr2].filter(item => !existingIds.has(item.id));
         allCandidates = [...allCandidates, ...newItems];
 
-        console.log('🎯 Strategy 2 (OR genres):', allCandidates.length, 'total candidates');
+        console.log('[Strategy] Strategy 2 (OR genres):', allCandidates.length, 'total candidates');
       }
 
       // Strategy 3: If still not enough, try just the primary genre
@@ -1061,7 +1075,7 @@ const enterWatchNext = () => {
         const newItems = [...resultsPrimary1, ...resultsPrimary2].filter(item => !existingIds.has(item.id));
         allCandidates = [...allCandidates, ...newItems];
 
-        console.log('🎯 Strategy 3 (primary genre only):', allCandidates.length, 'total candidates');
+        console.log('[Strategy] Strategy 3 (primary genre only):', allCandidates.length, 'total candidates');
       }
 
       // Strategy 4: Surprise mode or final fallback - popular content
@@ -1079,7 +1093,7 @@ const enterWatchNext = () => {
         const newItems = resultsFallback.filter(item => !existingIds.has(item.id));
         allCandidates = [...allCandidates, ...newItems];
 
-        console.log('🎯 Strategy 4 (fallback/surprise):', allCandidates.length, 'total candidates');
+        console.log('[Strategy] Strategy 4 (fallback/surprise):', allCandidates.length, 'total candidates');
       }
 
       // Strategy 5: Last resort - remove duration filter and try again
@@ -1098,10 +1112,10 @@ const enterWatchNext = () => {
         const newItems = resultsRelaxed.filter(item => !existingIds.has(item.id));
         allCandidates = [...allCandidates, ...newItems];
 
-        console.log('🎯 Strategy 5 (relaxed duration):', allCandidates.length, 'total candidates');
+        console.log('[Strategy] Strategy 5 (relaxed duration):', allCandidates.length, 'total candidates');
       }
 
-      console.log('🎯 Final candidates count:', allCandidates.length);
+      console.log('[Strategy] Final candidates count:', allCandidates.length);
 
       if (allCandidates.length === 0) {
         showToast('No matches found. Try different options.', 'warning');
@@ -1280,8 +1294,8 @@ const enterWatchNext = () => {
       const contentList = ONBOARDING_CONTENT[contentType] || ONBOARDING_CONTENT.movie;
       const count = getOnboardingCount();
 
-      console.log('🎬 Onboarding - contentType:', contentType);
-      console.log('🎬 Onboarding - contentList length:', contentList?.length);
+      console.log('[Onboarding] Onboarding - contentType:', contentType);
+      console.log('[Onboarding] Onboarding - contentList length:', contentList?.length);
 
       // Get IDs of already rated content (liked, skipped, or in watchlist)
       const alreadyRatedIds = [
@@ -1290,7 +1304,7 @@ const enterWatchNext = () => {
         ...watchlist.map(w => w.id),
       ];
 
-      console.log('🎬 Onboarding - alreadyRatedIds:', alreadyRatedIds.length);
+      console.log('[Onboarding] Onboarding - alreadyRatedIds:', alreadyRatedIds.length);
 
       // Filter out already rated and shuffle
       const availableContent = contentList
@@ -1298,11 +1312,11 @@ const enterWatchNext = () => {
         .sort(() => Math.random() - 0.5)
         .slice(0, count);
 
-      console.log('🎬 Onboarding - availableContent:', availableContent.length, availableContent.map(c => c.id));
+      console.log('[Onboarding] Onboarding - availableContent:', availableContent.length, availableContent.map(c => c.id));
 
       if (availableContent.length === 0) {
         // No more content to rate, skip onboarding
-        console.log('🎬 Onboarding - No available content, skipping');
+        console.log('[Onboarding] Onboarding - No available content, skipping');
         setOnboardingComplete(true);
         setOnboardingLoading(false);
         setNeedsOnboarding(false);
@@ -1312,17 +1326,17 @@ const enterWatchNext = () => {
 
       // Fetch details for selected content
       const endpoint = contentType === 'tv' ? 'tv' : 'movie';
-      console.log('🎬 Onboarding - fetching from endpoint:', endpoint);
+      console.log('[Onboarding] Onboarding - fetching from endpoint:', endpoint);
 
       const contentPromises = availableContent.map(item =>
         axios.get(`https://api.themoviedb.org/3/${endpoint}/${item.id}`, {
           params: { api_key: TMDB_API_KEY, language: 'en-US' }
         }).then(res => {
-          console.log('🎬 Onboarding - fetched:', item.id, res.data?.title || res.data?.name);
+          console.log('[Onboarding] Onboarding - fetched:', item.id, res.data?.title || res.data?.name);
           return { ...res.data, onboardingGenre: item.genre, mediaType: contentType };
         })
         .catch((err) => {
-          console.error('🎬 Onboarding - fetch failed for:', item.id, err.message);
+          console.error('[Onboarding] Onboarding - fetch failed for:', item.id, err.message);
           return null;
         })
       );
@@ -1330,11 +1344,11 @@ const enterWatchNext = () => {
       const results = await Promise.all(contentPromises);
       const validContent = results.filter(m => m !== null);
 
-      console.log('🎬 Onboarding - validContent:', validContent.length);
+      console.log('[Onboarding] Onboarding - validContent:', validContent.length);
 
       if (validContent.length === 0) {
         // All fetches failed, skip onboarding
-        console.log('🎬 Onboarding - All fetches failed, skipping');
+        console.log('[Onboarding] Onboarding - All fetches failed, skipping');
         setOnboardingComplete(true);
         setNeedsOnboarding(false);
         setOnboardingLoading(false);
@@ -1409,7 +1423,7 @@ const enterWatchNext = () => {
     // Check if we've reached threshold
     if (newTotalRated >= ONBOARDING_THRESHOLD) {
       setOnboardingComplete(true);
-      showToast('Taste profile complete! 🎉', 'success');
+      showToast('Taste profile complete!', 'success');
     } else {
       const remaining = ONBOARDING_THRESHOLD - newTotalRated;
       showToast(`Got it! ${remaining} more ratings to perfect your profile`, 'success');
@@ -1474,7 +1488,7 @@ const enterWatchNext = () => {
   if (currentScreen === SCREENS.LOADING) {
     return (
       <View style={[styles.splashContainer, { backgroundColor: theme.background }]}>
-        <Text style={styles.splashEmoji}>🎬</Text>
+        <Ionicons name="play-circle" size={80} color={theme.primary} style={{ marginBottom: 20 }} />
         <Text style={[styles.splashTitle, { color: theme.text }]}>WatchNext</Text>
         <Text style={[styles.splashSubtitle, { color: theme.textSecondary }]}>We pick, you watch</Text>
         <ActivityIndicator size="large" color={theme.primary} style={{ marginTop: 40 }} />
@@ -1490,72 +1504,69 @@ const enterWatchNext = () => {
           <View style={styles.homeHeader}>
             <View style={{ width: 40 }} />
             <View style={styles.logoContainer}>
-              <Text style={styles.logoEmoji}>🎬</Text>
+              <Ionicons name="play-circle" size={28} color={theme.primary} style={{ marginRight: 8 }} />
               <Text style={[styles.logoTitle, { color: theme.text }]}>WatchNext</Text>
             </View>
             <TouchableOpacity onPress={() => setCurrentScreen(SCREENS.SETTINGS)} style={styles.settingsBtn}>
-              <Text style={{ fontSize: 22 }}>⚙️</Text>
+              <Ionicons name="settings-outline" size={24} color={theme.text} />
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={[styles.searchBar, { backgroundColor: theme.surface }]} onPress={() => setCurrentScreen(SCREENS.SEARCH)}>
-            <Text style={{ fontSize: 18, marginRight: 12 }}>🔍</Text>
+            <Ionicons name="search-outline" size={20} color={theme.textMuted} style={{ marginRight: 12 }} />
             <Text style={[styles.searchPlaceholder, { color: theme.textMuted }]}>Search movies & TV shows...</Text>
           </TouchableOpacity>
 
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>What's Next?</Text>
-            
+
             <TouchableOpacity style={[styles.menuButton, { backgroundColor: theme.surface }]} onPress={enterWatchNext}>
-
-                <Text style={styles.watchNextEmoji}>🎯</Text>
-                <View style={styles.menuText}>
-                  <Text style={styles.watchNextTitle}>WatchNext</Text>
-                  <Text style={styles.watchNextSubtitle}>We pick, you watch</Text>
-
+              <Ionicons name="compass" size={32} color={theme.primary} style={{ marginRight: 14 }} />
+              <View style={styles.menuText}>
+                <Text style={styles.watchNextTitle}>WatchNext</Text>
+                <Text style={styles.watchNextSubtitle}>We pick, you watch</Text>
               </View>
-              <Text style={[styles.menuArrow, { color: theme.textMuted }]}>→</Text>
+              <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
             </TouchableOpacity>
           </View>
 
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>Discover</Text>
             <TouchableOpacity style={[styles.menuButton, { backgroundColor: theme.surface }]} onPress={() => startSwiping('movie')}>
-              <Text style={styles.menuEmoji}>🎬</Text>
+              <Ionicons name="film-outline" size={28} color={theme.text} style={{ marginRight: 14 }} />
               <View style={styles.menuText}>
                 <Text style={[styles.menuTitle, { color: theme.text }]}>Movies</Text>
                 <Text style={[styles.menuSubtitle, { color: theme.textSecondary }]}>Explore and save for later</Text>
               </View>
-              <Text style={[styles.menuArrow, { color: theme.textMuted }]}>→</Text>
+              <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity style={[styles.menuButton, { backgroundColor: theme.surface }]} onPress={() => startSwiping('tv')}>
-              <Text style={styles.menuEmoji}>📺</Text>
+              <Ionicons name="tv-outline" size={28} color={theme.text} style={{ marginRight: 14 }} />
               <View style={styles.menuText}>
                 <Text style={[styles.menuTitle, { color: theme.text }]}>TV Shows</Text>
                 <Text style={[styles.menuSubtitle, { color: theme.textSecondary }]}>Find your next binge</Text>
               </View>
-              <Text style={[styles.menuArrow, { color: theme.textMuted }]}>→</Text>
+              <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
             </TouchableOpacity>
           </View>
-
 
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>My Lists</Text>
             <TouchableOpacity style={[styles.menuButton, { backgroundColor: theme.surface }]} onPress={() => { setActiveListTab('watchlist'); setCurrentScreen(SCREENS.LISTS); }}>
-              <Text style={styles.menuEmoji}>📝</Text>
+              <Ionicons name="bookmark-outline" size={28} color={theme.text} style={{ marginRight: 14 }} />
               <View style={styles.menuText}>
                 <Text style={[styles.menuTitle, { color: theme.text }]}>Watchlist</Text>
                 <Text style={[styles.menuSubtitle, { color: theme.textSecondary }]}>{watchlist.length} titles to watch</Text>
               </View>
-              <Text style={[styles.menuArrow, { color: theme.textMuted }]}>→</Text>
+              <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity style={[styles.menuButton, { backgroundColor: theme.surface }]} onPress={() => { setActiveListTab('liked'); setCurrentScreen(SCREENS.LISTS); }}>
-              <Text style={styles.menuEmoji}>👍</Text>
+              <Ionicons name="heart-outline" size={28} color={theme.text} style={{ marginRight: 14 }} />
               <View style={styles.menuText}>
                 <Text style={[styles.menuTitle, { color: theme.text }]}>Liked</Text>
                 <Text style={[styles.menuSubtitle, { color: theme.textSecondary }]}>{likedList.length} titles you loved</Text>
               </View>
-              <Text style={[styles.menuArrow, { color: theme.textMuted }]}>→</Text>
+              <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
             </TouchableOpacity>
           </View>
 
@@ -1593,7 +1604,7 @@ const enterWatchNext = () => {
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[styles.header, { borderBottomColor: theme.border }]}>
           <TouchableOpacity onPress={() => setCurrentScreen(SCREENS.HOME)}>
-            <Text style={[styles.backBtn, { color: theme.primary }]}>← Back</Text>
+            <View style={styles.backBtnContainer}><Ionicons name="chevron-back" size={20} color={theme.primary} /><Text style={[styles.backBtn, { color: theme.primary }]}>Back</Text></View>
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: theme.text }]}>Settings</Text>
           <View style={{ width: 50 }} />
@@ -1602,7 +1613,7 @@ const enterWatchNext = () => {
           <Text style={[styles.settingsSectionTitle, { color: theme.textMuted }]}>Appearance</Text>
           <View style={[styles.settingsItem, { backgroundColor: theme.surface }]}>
             <View style={styles.settingsItemLeft}>
-              <Text style={{ fontSize: 22, marginRight: 14 }}>{isDarkMode ? '🌙' : '☀️'}</Text>
+              <Ionicons name={isDarkMode ? 'moon' : 'sunny'} size={22} color={theme.text} style={{ marginRight: 14 }} />
               <View>
                 <Text style={[styles.settingsItemTitle, { color: theme.text }]}>Dark Mode</Text>
                 <Text style={[styles.settingsItemSubtitle, { color: theme.textSecondary }]}>
@@ -1616,7 +1627,7 @@ const enterWatchNext = () => {
           <Text style={[styles.settingsSectionTitle, { color: theme.textMuted, marginTop: 24 }]}>Data</Text>
           <TouchableOpacity style={[styles.settingsItem, { backgroundColor: theme.surface }]} onPress={() => setCurrentScreen(SCREENS.STATS)}>
             <View style={styles.settingsItemLeft}>
-              <Text style={{ fontSize: 22, marginRight: 14 }}>📊</Text>
+              <Ionicons name="stats-chart" size={22} color={theme.primary} style={{ marginRight: 14 }} />
               <View>
                 <Text style={[styles.settingsItemTitle, { color: theme.text }]}>Statistics</Text>
                 <Text style={[styles.settingsItemSubtitle, { color: theme.textSecondary }]}>View your watching habits</Text>
@@ -1660,7 +1671,7 @@ const enterWatchNext = () => {
   }}
 >
   <View style={styles.settingsItemLeft}>
-    <Text style={{ fontSize: 22, marginRight: 14 }}>🚨</Text>
+    <Ionicons name="warning" size={22} color="#fff" style={{ marginRight: 14 }} />
     <View>
       <Text style={[styles.settingsItemTitle, { color: '#fff' }]}>Emergency Full Reset</Text>
       <Text style={[styles.settingsItemSubtitle, { color: 'rgba(255,255,255,0.7)' }]}>Clear everything and start fresh</Text>
@@ -1670,7 +1681,7 @@ const enterWatchNext = () => {
           <Text style={[styles.settingsSectionTitle, { color: theme.textMuted, marginTop: 24 }]}>About</Text>
           <View style={[styles.settingsItem, { backgroundColor: theme.surface }]}>
             <View style={styles.settingsItemLeft}>
-              <Text style={{ fontSize: 22, marginRight: 14 }}>📱</Text>
+              <Ionicons name="phone-portrait-outline" size={22} color={theme.primary} style={{ marginRight: 14 }} />
               <View>
                 <Text style={[styles.settingsItemTitle, { color: theme.text }]}>Version</Text>
                 <Text style={[styles.settingsItemSubtitle, { color: theme.textSecondary }]}>1.0.0</Text>
@@ -1690,7 +1701,7 @@ const enterWatchNext = () => {
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[styles.header, { borderBottomColor: theme.border }]}>
           <TouchableOpacity onPress={() => setCurrentScreen(SCREENS.HOME)}>
-            <Text style={[styles.backBtn, { color: theme.primary }]}>← Back</Text>
+            <View style={styles.backBtnContainer}><Ionicons name="chevron-back" size={20} color={theme.primary} /><Text style={[styles.backBtn, { color: theme.primary }]}>Back</Text></View>
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: theme.text }]}>Statistics</Text>
           <View style={{ width: 50 }} />
@@ -1717,32 +1728,32 @@ const enterWatchNext = () => {
             <Text style={[styles.statsSectionTitle, { color: theme.text }]}>Content Breakdown</Text>
             <View style={styles.statsBreakdownRow}>
               <Text style={{ color: theme.textSecondary }}>Watchlist Movies</Text>
-              <Text style={{ color: theme.text, fontWeight: '600' }}>{stats.watchlistMovies} 🎬</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}><Text style={{ color: theme.text, fontWeight: '600', marginRight: 6 }}>{stats.watchlistMovies}</Text><Ionicons name="film-outline" size={16} color={theme.text} /></View>
             </View>
             <View style={styles.statsBreakdownRow}>
               <Text style={{ color: theme.textSecondary }}>Watchlist TV Shows</Text>
-              <Text style={{ color: theme.text, fontWeight: '600' }}>{stats.watchlistTV} 📺</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}><Text style={{ color: theme.text, fontWeight: '600', marginRight: 6 }}>{stats.watchlistTV}</Text><Ionicons name="tv-outline" size={16} color={theme.text} /></View>
             </View>
             <View style={[styles.statsDivider, { backgroundColor: theme.border }]} />
             <View style={styles.statsBreakdownRow}>
               <Text style={{ color: theme.textSecondary }}>Liked Movies</Text>
-              <Text style={{ color: theme.text, fontWeight: '600' }}>{stats.likedMovies} 🎬</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}><Text style={{ color: theme.text, fontWeight: '600', marginRight: 6 }}>{stats.likedMovies}</Text><Ionicons name="film-outline" size={16} color={theme.text} /></View>
             </View>
             <View style={styles.statsBreakdownRow}>
               <Text style={{ color: theme.textSecondary }}>Liked TV Shows</Text>
-              <Text style={{ color: theme.text, fontWeight: '600' }}>{stats.likedTV} 📺</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}><Text style={{ color: theme.text, fontWeight: '600', marginRight: 6 }}>{stats.likedTV}</Text><Ionicons name="tv-outline" size={16} color={theme.text} /></View>
             </View>
           </View>
           <View style={[styles.statsSection, { backgroundColor: theme.surface }]}>
             <Text style={[styles.statsSectionTitle, { color: theme.text }]}>Estimated Watch Time</Text>
             <View style={styles.statsTimeRow}>
               <View style={[styles.statsTimeItem, { backgroundColor: theme.card }]}>
-                <Text style={{ fontSize: 24 }}>📝</Text>
+                <Ionicons name="bookmark-outline" size={24} color={theme.primary} />
                 <Text style={[styles.statsTimeValue, { color: theme.primary }]}>{stats.estimatedWatchlistTime}</Text>
                 <Text style={{ fontSize: 11, color: theme.textSecondary }}>Watchlist</Text>
               </View>
               <View style={[styles.statsTimeItem, { backgroundColor: theme.card }]}>
-                <Text style={{ fontSize: 24 }}>👍</Text>
+                <Ionicons name="heart-outline" size={24} color={theme.secondary} />
                 <Text style={[styles.statsTimeValue, { color: theme.secondary }]}>{stats.estimatedLikedTime}</Text>
                 <Text style={{ fontSize: 11, color: theme.textSecondary }}>Already watched</Text>
               </View>
@@ -1753,7 +1764,7 @@ const enterWatchNext = () => {
               <Text style={[styles.statsSectionTitle, { color: theme.text }]}>Your Preferences</Text>
               <View style={styles.statsBreakdownRow}>
                 <Text style={{ color: theme.textSecondary }}>Average Rating</Text>
-                <Text style={{ color: theme.text, fontWeight: '600' }}>⭐ {stats.avgRating}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="star" size={14} color="#FFD700" style={{ marginRight: 4 }} /><Text style={{ color: theme.text, fontWeight: '600' }}>{stats.avgRating}</Text></View>
               </View>
               {stats.topGenres.length > 0 && (
                 <View style={styles.statsBreakdownRow}>
@@ -1776,13 +1787,13 @@ const enterWatchNext = () => {
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[styles.header, { borderBottomColor: theme.border }]}>
           <TouchableOpacity onPress={() => { setCurrentScreen(SCREENS.HOME); setSearchQuery(''); setSearchResults([]); }}>
-            <Text style={[styles.backBtn, { color: theme.primary }]}>← Back</Text>
+            <View style={styles.backBtnContainer}><Ionicons name="chevron-back" size={20} color={theme.primary} /><Text style={[styles.backBtn, { color: theme.primary }]}>Back</Text></View>
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: theme.text }]}>Search</Text>
           <View style={{ width: 50 }} />
         </View>
         <View style={[styles.searchInputContainer, { backgroundColor: theme.surface }]}>
-          <Text style={{ fontSize: 16, marginRight: 10 }}>🔍</Text>
+          <Ionicons name="search" size={18} color={theme.textMuted} style={{ marginRight: 10 }} />
           <TextInput
             style={[styles.searchInput, { color: theme.text }]}
             placeholder="Search movies & TV shows..."
@@ -1793,7 +1804,7 @@ const enterWatchNext = () => {
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => { setSearchQuery(''); setSearchResults([]); }}>
-              <Text style={{ color: theme.textMuted, fontSize: 18 }}>✕</Text>
+              <Ionicons name="close" size={18} color={theme.textMuted} />
             </TouchableOpacity>
           )}
         </View>
@@ -1810,9 +1821,9 @@ const enterWatchNext = () => {
                 <View style={styles.searchResultInfo}>
                   <Text style={[styles.searchResultTitle, { color: theme.text }]} numberOfLines={2}>{item.title || item.name}</Text>
                   <View style={styles.searchResultMeta}>
-                    <Text>{item.mediaType === 'movie' ? '🎬' : '📺'}</Text>
+                    <Ionicons name={item.mediaType === 'movie' ? 'film-outline' : 'tv-outline'} size={14} color={theme.textSecondary} />
                     <Text style={{ color: theme.textSecondary, marginLeft: 8 }}>{(item.release_date || item.first_air_date || '').split('-')[0]}</Text>
-                    <Text style={{ color: theme.textSecondary, marginLeft: 8 }}>⭐ {item.vote_average?.toFixed(1)}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 8 }}><Ionicons name="star" size={12} color="#FFD700" style={{ marginRight: 2 }} /><Text style={{ color: theme.textSecondary }}>{item.vote_average?.toFixed(1)}</Text></View>
                   </View>
                 </View>
                 <TouchableOpacity style={[styles.addBtn, { backgroundColor: theme.primary }]} onPress={() => showAddModal(item)}>
@@ -1822,7 +1833,7 @@ const enterWatchNext = () => {
             )}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyEmoji}>{searchQuery.length > 0 ? '🔍' : '🎬'}</Text>
+                <Ionicons name={searchQuery.length > 0 ? 'search' : 'film-outline'} size={48} color={theme.textMuted} />
                 <Text style={[styles.emptyTitle, { color: theme.text }]}>{searchQuery.length > 0 ? 'No results' : 'Search for movies & TV'}</Text>
                 <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>{searchQuery.length > 0 ? 'Try a different term' : 'Find titles to add to your lists'}</Text>
               </View>
@@ -1839,17 +1850,17 @@ const enterWatchNext = () => {
                 style={[styles.addModalOption, { backgroundColor: theme.card }, isInWatchlist(itemToAdd?.id) && { opacity: 0.5 }]}
                 onPress={() => { if (!isInWatchlist(itemToAdd?.id)) { addToWatchlist(itemToAdd); setShowAddToListModal(false); showToast('Added to Watchlist', 'success'); } }}
               >
-                <Text style={{ fontSize: 20, marginRight: 12 }}>📝</Text>
+                <Ionicons name="bookmark-outline" size={20} color={theme.text} style={{ marginRight: 12 }} />
                 <Text style={{ color: theme.text, flex: 1 }}>{isInWatchlist(itemToAdd?.id) ? 'Already in Watchlist' : 'Add to Watchlist'}</Text>
-                {isInWatchlist(itemToAdd?.id) && <Text style={{ color: '#4CAF50' }}>✓</Text>}
+                {isInWatchlist(itemToAdd?.id) && <Ionicons name="checkmark" size={18} color="#4CAF50" />}
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.addModalOption, { backgroundColor: theme.card }, isInLiked(itemToAdd?.id) && { opacity: 0.5 }]}
                 onPress={() => { if (!isInLiked(itemToAdd?.id)) { addToLiked(itemToAdd); setShowAddToListModal(false); showToast('Added to Liked', 'success'); } }}
               >
-                <Text style={{ fontSize: 20, marginRight: 12 }}>👍</Text>
+                <Ionicons name="heart-outline" size={20} color={theme.text} style={{ marginRight: 12 }} />
                 <Text style={{ color: theme.text, flex: 1 }}>{isInLiked(itemToAdd?.id) ? 'Already in Liked' : 'Add to Liked'}</Text>
-                {isInLiked(itemToAdd?.id) && <Text style={{ color: '#4CAF50' }}>✓</Text>}
+                {isInLiked(itemToAdd?.id) && <Ionicons name="checkmark" size={18} color="#4CAF50" />}
               </TouchableOpacity>
               <TouchableOpacity style={{ padding: 14, alignItems: 'center', marginTop: 4 }} onPress={() => setShowAddToListModal(false)}>
                 <Text style={{ color: theme.textSecondary }}>Cancel</Text>
@@ -1872,18 +1883,18 @@ const enterWatchNext = () => {
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[styles.header, { borderBottomColor: theme.border }]}>
           <TouchableOpacity onPress={() => setCurrentScreen(SCREENS.HOME)}>
-            <Text style={[styles.backBtn, { color: theme.primary }]}>← Back</Text>
+            <View style={styles.backBtnContainer}><Ionicons name="chevron-back" size={20} color={theme.primary} /><Text style={[styles.backBtn, { color: theme.primary }]}>Back</Text></View>
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: theme.text }]}>My Lists</Text>
           <View style={{ width: 50 }} />
         </View>
         <View style={styles.listTabs}>
           <TouchableOpacity style={[styles.listTab, { backgroundColor: activeListTab === 'watchlist' ? theme.primary : theme.surface }]} onPress={() => setActiveListTab('watchlist')}>
-            <Text>📝</Text>
+            <Ionicons name="bookmark-outline" size={18} color={activeListTab === 'watchlist' ? '#fff' : theme.textSecondary} />
             <Text style={{ color: activeListTab === 'watchlist' ? '#fff' : theme.textSecondary, marginLeft: 6, fontWeight: '600' }}>Watchlist ({watchlist.length})</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.listTab, { backgroundColor: activeListTab === 'liked' ? theme.secondary : theme.surface }]} onPress={() => setActiveListTab('liked')}>
-            <Text>👍</Text>
+            <Ionicons name="heart-outline" size={18} color={activeListTab === 'liked' ? '#fff' : theme.textSecondary} />
             <Text style={{ color: activeListTab === 'liked' ? '#fff' : theme.textSecondary, marginLeft: 6, fontWeight: '600' }}>Liked ({likedList.length})</Text>
           </TouchableOpacity>
         </View>
@@ -1891,7 +1902,7 @@ const enterWatchNext = () => {
           {['all', 'movie', 'tv'].map((filter) => (
             <TouchableOpacity key={filter} style={[styles.filterTab, { backgroundColor: listTypeFilter === filter ? theme.card : theme.surface }]} onPress={() => setListTypeFilter(filter)}>
               <Text style={{ color: listTypeFilter === filter ? theme.text : theme.textSecondary, fontWeight: '600', fontSize: 12 }}>
-                {filter === 'all' ? `All (${counts.all})` : filter === 'movie' ? `🎬 (${counts.movies})` : `📺 (${counts.tv})`}
+                {filter === 'all' ? `All (${counts.all})` : filter === 'movie' ? `Movies (${counts.movies})` : `TV (${counts.tv})`}
               </Text>
             </TouchableOpacity>
           ))}
@@ -1906,23 +1917,23 @@ const enterWatchNext = () => {
               <View style={styles.listContent}>
                 <Text style={[styles.listTitle, { color: theme.text }]} numberOfLines={2}>{item.title || item.name}</Text>
                 <View style={styles.listMeta}>
-                  <Text>{item.mediaType === 'movie' ? '🎬' : '📺'}</Text>
-                  <Text style={{ color: theme.textSecondary, marginLeft: 8 }}>⭐ {item.vote_average?.toFixed(1)}</Text>
+                  <Ionicons name={item.mediaType === 'movie' ? 'film-outline' : 'tv-outline'} size={14} color={theme.textSecondary} />
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 8 }}><Ionicons name="star" size={12} color="#FFD700" style={{ marginRight: 2 }} /><Text style={{ color: theme.textSecondary }}>{item.vote_average?.toFixed(1)}</Text></View>
                 </View>
               </View>
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 <TouchableOpacity style={[styles.listActionBtn, { backgroundColor: theme.surface }]} onPress={() => moveToOtherList(item, activeListTab)}>
-                  <Text>{activeListTab === 'watchlist' ? '👍' : '📝'}</Text>
+                  <Ionicons name={activeListTab === 'watchlist' ? 'heart-outline' : 'bookmark-outline'} size={18} color={theme.text} />
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.listActionBtn, { backgroundColor: theme.surface }]} onPress={() => removeFromList(item, activeListTab)}>
-                  <Text style={{ color: theme.textSecondary }}>✕</Text>
+                  <Ionicons name="close" size={18} color={theme.textSecondary} />
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
           )}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyEmoji}>{activeListTab === 'watchlist' ? '📝' : '👍'}</Text>
+              <Ionicons name={activeListTab === 'watchlist' ? 'bookmark-outline' : 'heart-outline'} size={48} color={theme.textMuted} />
               <Text style={[styles.emptyTitle, { color: theme.text }]}>No titles yet</Text>
               <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>{activeListTab === 'watchlist' ? 'Start discovering!' : 'Mark titles you loved!'}</Text>
               <TouchableOpacity style={[styles.emptyButton, { backgroundColor: theme.primary }]} onPress={() => setCurrentScreen(SCREENS.HOME)}>
@@ -1933,7 +1944,7 @@ const enterWatchNext = () => {
         />
         {currentList.length > 0 && (
           <TouchableOpacity style={[styles.clearBtn, { borderColor: theme.danger }]} onPress={() => clearList(activeListTab)}>
-            <Text style={{ color: theme.danger, fontWeight: '600' }}>🗑️ Clear {activeListTab === 'watchlist' ? 'Watchlist' : 'Liked'}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="trash-outline" size={16} color={theme.danger} style={{ marginRight: 6 }} /><Text style={{ color: theme.danger, fontWeight: '600' }}>Clear {activeListTab === 'watchlist' ? 'Watchlist' : 'Liked'}</Text></View>
           </TouchableOpacity>
         )}
         <Toast {...toast} />
@@ -1950,7 +1961,7 @@ const enterWatchNext = () => {
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[styles.header, { borderBottomColor: theme.border }]}>
           <TouchableOpacity onPress={() => { setCurrentScreen(previousScreen || SCREENS.HOME); setSelectedItem(null); setTrailers([]); setSimilarContent([]); }}>
-            <Text style={[styles.backBtn, { color: theme.primary }]}>← Back</Text>
+            <View style={styles.backBtnContainer}><Ionicons name="chevron-back" size={20} color={theme.primary} /><Text style={[styles.backBtn, { color: theme.primary }]}>Back</Text></View>
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: theme.text }]} numberOfLines={1}>{item.title || item.name}</Text>
           <View style={{ width: 50 }} />
@@ -1962,7 +1973,7 @@ const enterWatchNext = () => {
               <Text style={[styles.detailsTitle, { color: theme.text }]}>{item.title || item.name}</Text>
               {movieDetails?.tagline && <Text style={{ color: theme.secondary, fontSize: 12, fontStyle: 'italic', marginBottom: 10 }}>"{movieDetails.tagline}"</Text>}
               <View style={styles.detailsBadges}>
-                <View style={[styles.badge, { backgroundColor: theme.card }]}><Text style={{ color: theme.text, fontSize: 10 }}>⭐ {item.vote_average?.toFixed(1)}</Text></View>
+                <View style={[styles.badge, { backgroundColor: theme.card, flexDirection: 'row', alignItems: 'center' }]}><Ionicons name="star" size={10} color="#FFD700" style={{ marginRight: 3 }} /><Text style={{ color: theme.text, fontSize: 10 }}>{item.vote_average?.toFixed(1)}</Text></View>
                 <View style={[styles.badge, { backgroundColor: theme.card }]}><Text style={{ color: theme.text, fontSize: 10 }}>{(item.release_date || item.first_air_date || '').split('-')[0]}</Text></View>
                 {getRuntime() && <View style={[styles.badge, { backgroundColor: theme.card }]}><Text style={{ color: theme.text, fontSize: 10 }}>{getRuntime()}</Text></View>}
               </View>
@@ -1981,14 +1992,14 @@ const enterWatchNext = () => {
               style={[styles.detailsActionBtn, { backgroundColor: isInWatchlist(item.id) ? theme.primary : theme.surface }]}
               onPress={() => { if (isInWatchlist(item.id)) removeFromList(item, 'watchlist'); else { addToWatchlist(item); showToast('Added to Watchlist', 'success'); } }}
             >
-              <Text style={{ fontSize: 18 }}>📝</Text>
+              <Ionicons name="bookmark-outline" size={18} color={isInWatchlist(item.id) ? '#fff' : theme.text} />
               <Text style={{ color: isInWatchlist(item.id) ? '#fff' : theme.text, fontWeight: '600', marginLeft: 8 }}>{isInWatchlist(item.id) ? 'In Watchlist' : 'Watchlist'}</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.detailsActionBtn, { backgroundColor: isInLiked(item.id) ? theme.secondary : theme.surface }]}
               onPress={() => { if (isInLiked(item.id)) removeFromList(item, 'liked'); else { addToLiked(item); showToast('Added to Liked', 'success'); } }}
             >
-              <Text style={{ fontSize: 18 }}>👍</Text>
+              <Ionicons name="heart-outline" size={18} color={isInLiked(item.id) ? '#fff' : theme.text} />
               <Text style={{ color: isInLiked(item.id) ? '#fff' : theme.text, fontWeight: '600', marginLeft: 8 }}>{isInLiked(item.id) ? 'Liked' : 'Like'}</Text>
             </TouchableOpacity>
           </View>
@@ -2071,9 +2082,9 @@ const enterWatchNext = () => {
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[styles.header, { borderBottomColor: theme.border }]}>
           <TouchableOpacity onPress={resetRecommendation}>
-            <Text style={[styles.backBtn, { color: theme.primary }]}>← Back</Text>
+            <View style={styles.backBtnContainer}><Ionicons name="chevron-back" size={20} color={theme.primary} /><Text style={[styles.backBtn, { color: theme.primary }]}>Back</Text></View>
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>🎯 WatchNext</Text>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>WatchNext</Text>
           <View style={{ width: 50 }} />
         </View>
 
@@ -2090,7 +2101,7 @@ const enterWatchNext = () => {
                   style={[styles.recommendTypeCard, { backgroundColor: theme.surface }]} 
                   onPress={() => startRecommendation('movie')}
                 >
-                  <Text style={styles.recommendTypeEmoji}>🎬</Text>
+                  <Ionicons name="film-outline" size={40} color={theme.primary} style={{ marginBottom: 8 }} />
                   <Text style={[styles.recommendTypeLabel, { color: theme.text }]}>Movie</Text>
                   <Text style={[styles.recommendTypeDesc, { color: theme.textSecondary }]}>Single sitting</Text>
                 </TouchableOpacity>
@@ -2099,7 +2110,7 @@ const enterWatchNext = () => {
                   style={[styles.recommendTypeCard, { backgroundColor: theme.surface }]} 
                   onPress={() => startRecommendation('tv')}
                 >
-                  <Text style={styles.recommendTypeEmoji}>📺</Text>
+                  <Ionicons name="tv-outline" size={40} color={theme.secondary} style={{ marginBottom: 8 }} />
                   <Text style={[styles.recommendTypeLabel, { color: theme.text }]}>TV Show</Text>
                   <Text style={[styles.recommendTypeDesc, { color: theme.textSecondary }]}>Series journey</Text>
                 </TouchableOpacity>
@@ -2149,8 +2160,8 @@ const enterWatchNext = () => {
                       {onboardingMovies[onboardingIndex]?.onboardingGenre}
                     </Text>
                     <View style={styles.onboardingMeta}>
-                      <Text style={{ color: theme.textSecondary }}>
-                        ⭐ {onboardingMovies[onboardingIndex]?.vote_average?.toFixed(1)}
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Ionicons name="star" size={14} color="#FFD700" style={{ marginRight: 4 }} /><Text style={{ color: theme.textSecondary }}>{onboardingMovies[onboardingIndex]?.vote_average?.toFixed(1)}</Text></View>
                       </Text>
                       <Text style={{ color: theme.textSecondary }}>
                         {onboardingMovies[onboardingIndex]?.release_date?.split('-')[0]}
@@ -2167,7 +2178,7 @@ const enterWatchNext = () => {
                       style={[styles.onboardingBtn, styles.onboardingBtnDislike, { backgroundColor: theme.danger }]}
                       onPress={() => handleOnboardingRate(onboardingMovies[onboardingIndex].id, 'dislike')}
                     >
-                      <Text style={styles.onboardingBtnEmoji}>👎</Text>
+                      <Ionicons name="thumbs-down" size={24} color="#fff" />
                       <Text style={styles.onboardingBtnText}>Not for me</Text>
                     </TouchableOpacity>
 
@@ -2175,7 +2186,7 @@ const enterWatchNext = () => {
                       style={[styles.onboardingBtn, styles.onboardingBtnSkip, { backgroundColor: theme.surface, borderColor: theme.border }]}
                       onPress={() => handleOnboardingRate(onboardingMovies[onboardingIndex].id, 'skip')}
                     >
-                      <Text style={[styles.onboardingBtnEmoji, { fontSize: 20 }]}>🤷</Text>
+                      <Ionicons name="help-circle-outline" size={24} color={theme.textSecondary} />
                       <Text style={[styles.onboardingBtnText, { color: theme.textSecondary }]}>Haven't seen</Text>
                     </TouchableOpacity>
 
@@ -2183,7 +2194,7 @@ const enterWatchNext = () => {
                       style={[styles.onboardingBtn, styles.onboardingBtnLike, { backgroundColor: theme.primary }]}
                       onPress={() => handleOnboardingRate(onboardingMovies[onboardingIndex].id, 'like')}
                     >
-                      <Text style={styles.onboardingBtnEmoji}>👍</Text>
+                      <Ionicons name="thumbs-up" size={24} color="#fff" />
                       <Text style={styles.onboardingBtnText}>Loved it</Text>
                     </TouchableOpacity>
                   </View>
@@ -2235,7 +2246,7 @@ const enterWatchNext = () => {
                       }
                     }}
                   >
-                    <Text style={styles.moodEmoji}>{mood.emoji}</Text>
+                    <Icon name={mood.icon.name} family={mood.icon.family} size={32} color={theme.text} />
                     <Text style={[styles.moodLabel, { color: theme.text }]}>{mood.label}</Text>
                   </TouchableOpacity>
                 ))}
@@ -2259,11 +2270,11 @@ const enterWatchNext = () => {
                 const selectedMood = MOODS.find(m => m.id === recommendMood);
                 return (
                   <>
-                    <TouchableOpacity 
-                      style={styles.selectedMoodHeader} 
+                    <TouchableOpacity
+                      style={styles.selectedMoodHeader}
                       onPress={() => setRecommendMood(null)}
                     >
-                      <Text style={{ fontSize: 32 }}>{selectedMood?.emoji}</Text>
+                      <Icon name={selectedMood?.icon?.name} family={selectedMood?.icon?.family} size={32} color={theme.text} />
                       <Text style={[styles.selectedMoodLabel, { color: theme.text }]}>{selectedMood?.label}</Text>
                       <Text style={[styles.changeMood, { color: theme.primary }]}>Change</Text>
                     </TouchableOpacity>
@@ -2283,20 +2294,19 @@ const enterWatchNext = () => {
                               setRecommendStep(2);
                             }}
                           >
-                            <Text style={styles.subMoodEmoji}>{sub.emoji}</Text>
+                            <Icon name={sub.icon.name} family={sub.icon.family} size={24} color={theme.text} style={{ marginRight: 12 }} />
                             <Text style={[styles.subMoodLabel, { color: theme.text }]}>{sub.label}</Text>
-                            <Text style={[styles.subMoodArrow, { color: theme.textMuted }]}>→</Text>
+                            <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
                           </TouchableOpacity>
                         ))
                       ) : (
-                        // Fallback: no sub-options, auto-advance to step 2
                         <TouchableOpacity
                           style={[styles.subMoodCard, { backgroundColor: theme.primary }]}
                           onPress={() => setRecommendStep(2)}
                         >
-                          <Text style={styles.subMoodEmoji}>✨</Text>
+                          <Ionicons name="sparkles" size={24} color="#fff" style={{ marginRight: 12 }} />
                           <Text style={[styles.subMoodLabel, { color: '#fff' }]}>Continue</Text>
-                          <Text style={[styles.subMoodArrow, { color: 'rgba(255,255,255,0.7)' }]}>→</Text>
+                          <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.7)" />
                         </TouchableOpacity>
                       )}
                     </View>
@@ -2324,24 +2334,25 @@ const enterWatchNext = () => {
               
               <View style={styles.durationOptions}>
                 {(recommendType === 'movie' ? DURATION_OPTIONS : COMMITMENT_OPTIONS).map((option) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={option.id}
                     style={[
-                      styles.durationCard, 
+                      styles.durationCard,
                       { backgroundColor: theme.surface },
                       recommendDuration === option.id && { backgroundColor: theme.primary }
-                    ]} 
+                    ]}
                     onPress={() => setRecommendDuration(option.id)}
                   >
-                    <Text style={styles.durationEmoji}>{option.emoji}</Text>
+                    <Icon name={option.icon.name} family={option.icon.family} size={28} color={recommendDuration === option.id ? '#fff' : theme.text} />
                     <Text style={[styles.durationLabel, { color: recommendDuration === option.id ? '#fff' : theme.text }]}>{option.label}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
-              
+
               <View style={styles.navButtons}>
                 <TouchableOpacity style={[styles.backStepButton, { backgroundColor: theme.surface }]} onPress={() => setRecommendStep(1)}>
-                  <Text style={{ color: theme.text }}>← Back</Text>
+                  <Ionicons name="arrow-back" size={16} color={theme.text} style={{ marginRight: 4 }} />
+                  <Text style={{ color: theme.text }}>Back</Text>
                 </TouchableOpacity>
                 {recommendDuration && (
                   <TouchableOpacity style={[styles.nextButton, { backgroundColor: theme.primary, flex: 1, marginLeft: 10 }]} onPress={() => setRecommendStep(3)}>
@@ -2368,24 +2379,25 @@ const enterWatchNext = () => {
               
               <View style={styles.languageOptions}>
                 {LANGUAGE_OPTIONS.map((option) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={option.id}
                     style={[
-                      styles.languageCard, 
+                      styles.languageCard,
                       { backgroundColor: theme.surface },
                       recommendLanguage === option.id && { backgroundColor: theme.primary }
-                    ]} 
+                    ]}
                     onPress={() => setRecommendLanguage(option.id)}
                   >
-                    <Text style={styles.languageEmoji}>{option.emoji}</Text>
+                    <Icon name={option.icon.name} family={option.icon.family} size={24} color={recommendLanguage === option.id ? '#fff' : theme.text} />
                     <Text style={[styles.languageLabel, { color: recommendLanguage === option.id ? '#fff' : theme.text }]}>{option.label}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
-              
+
               <View style={styles.navButtons}>
                 <TouchableOpacity style={[styles.backStepButton, { backgroundColor: theme.surface }]} onPress={() => setRecommendStep(2)}>
-                  <Text style={{ color: theme.text }}>← Back</Text>
+                  <Ionicons name="arrow-back" size={16} color={theme.text} style={{ marginRight: 4 }} />
+                  <Text style={{ color: theme.text }}>Back</Text>
                 </TouchableOpacity>
                 {recommendLanguage && (
                   <TouchableOpacity 
@@ -2396,7 +2408,7 @@ const enterWatchNext = () => {
                     {recommendLoading ? (
                       <ActivityIndicator color="#fff" />
                     ) : (
-                      <Text style={styles.nextButtonText}>🎯 Get Recommendation</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="sparkles" size={18} color="#fff" style={{ marginRight: 8 }} /><Text style={styles.nextButtonText}>Get Recommendation</Text></View>
                     )}
                   </TouchableOpacity>
                 )}
@@ -2424,8 +2436,8 @@ const enterWatchNext = () => {
                 <View style={styles.resultInfo}>
                   <Text style={[styles.resultTitle, { color: theme.text }]}>{recommendation.title || recommendation.name}</Text>
                   <View style={styles.resultBadges}>
-                    <View style={[styles.badge, { backgroundColor: theme.card }]}>
-                      <Text style={{ color: theme.text, fontSize: 11 }}>⭐ {recommendation.vote_average?.toFixed(1)}</Text>
+                    <View style={[styles.badge, { backgroundColor: theme.card, flexDirection: 'row', alignItems: 'center' }]}>
+                      <Ionicons name="star" size={11} color="#FFD700" style={{ marginRight: 3 }} /><Text style={{ color: theme.text, fontSize: 11 }}>{recommendation.vote_average?.toFixed(1)}</Text>
                     </View>
                     <View style={[styles.badge, { backgroundColor: theme.card }]}>
                       <Text style={{ color: theme.text, fontSize: 11 }}>{(recommendation.release_date || recommendation.first_air_date || '').split('-')[0]}</Text>
@@ -2452,21 +2464,21 @@ const enterWatchNext = () => {
                   
                   {recommendationExplanation.positive.map((reason, i) => (
                     <View key={i} style={styles.reasonRow}>
-                      <Text style={styles.reasonIcon}>✓</Text>
+                      <Ionicons name="checkmark-circle" size={16} color={theme.primary} style={{ marginRight: 8 }} />
                       <Text style={[styles.reasonText, { color: theme.textSecondary }]}>{reason}</Text>
                     </View>
                   ))}
                   
                   {recommendationExplanation.negative.map((reason, i) => (
                     <View key={i} style={styles.reasonRow}>
-                      <Text style={[styles.reasonIcon, { color: theme.secondary }]}>⚠</Text>
+                      <Ionicons name="alert-circle" size={16} color={theme.secondary} style={{ marginRight: 8 }} />
                       <Text style={[styles.reasonText, { color: theme.textMuted }]}>{reason}</Text>
                     </View>
                   ))}
                   
                   {likedList.length < 5 && (
                     <Text style={{ color: theme.textMuted, fontSize: 11, marginTop: 10, fontStyle: 'italic' }}>
-                      💡 Like more titles to improve recommendations
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="bulb-outline" size={14} color={theme.textMuted} style={{ marginRight: 6 }} /><Text style={{ color: theme.textMuted, fontSize: 11, fontStyle: 'italic' }}>Like more titles to improve recommendations</Text></View>
                     </Text>
                   )}
                 </View>
@@ -2478,13 +2490,13 @@ const enterWatchNext = () => {
                   style={[styles.resultActionBtn, { backgroundColor: theme.primary }]}
                   onPress={() => { addToWatchlist(recommendation); showToast('Added to Watchlist!', 'success'); }}
                 >
-                  <Text style={styles.resultActionText}>📝 Add to Watchlist</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="bookmark-outline" size={16} color="#fff" style={{ marginRight: 6 }} /><Text style={styles.resultActionText}>Add to Watchlist</Text></View>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={[styles.resultActionBtn, { backgroundColor: theme.secondary }]}
                   onPress={() => { addToLiked(recommendation); showToast('Added to Liked!', 'success'); }}
                 >
-                  <Text style={styles.resultActionText}>👍 Already seen & loved</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="heart" size={16} color="#fff" style={{ marginRight: 6 }} /><Text style={styles.resultActionText}>Already seen & loved</Text></View>
                 </TouchableOpacity>
               </View>
 
@@ -2493,7 +2505,7 @@ const enterWatchNext = () => {
                   style={[styles.anotherBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
                   onPress={getAnotherSuggestion}
                 >
-                  <Text style={{ color: theme.text }}>🎲 Another suggestion</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="shuffle" size={16} color={theme.text} style={{ marginRight: 6 }} /><Text style={{ color: theme.text }}>Another suggestion</Text></View>
                 </TouchableOpacity>
                 
                 <TouchableOpacity 
@@ -2510,7 +2522,7 @@ const enterWatchNext = () => {
                     setSuggestedIds([]); // Clear suggestions when changing options
                   }}
                 >
-                  <Text style={{ color: theme.textSecondary }}>⚙️ Change options</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="options-outline" size={16} color={theme.textSecondary} style={{ marginRight: 6 }} /><Text style={{ color: theme.textSecondary }}>Change options</Text></View>
                 </TouchableOpacity>
               </View>
             </View>
@@ -2547,7 +2559,7 @@ const enterWatchNext = () => {
           {recommendStep === 4 && !recommendation && !recommendLoading && (
             <View style={styles.recommendSection}>
               <View style={styles.centered}>
-                <Text style={{ fontSize: 48, marginBottom: 16 }}>😕</Text>
+                <Ionicons name="sad-outline" size={48} color={theme.textMuted} style={{ marginBottom: 16 }} />
                 <Text style={[styles.recommendQuestion, { color: theme.text, textAlign: 'center' }]}>
                   Couldn't find a match
                 </Text>
@@ -2591,11 +2603,11 @@ const enterWatchNext = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={[styles.header, { borderBottomColor: theme.border }]}>
         <TouchableOpacity onPress={() => setCurrentScreen(SCREENS.HOME)}>
-          <Text style={[styles.backBtn, { color: theme.primary }]}>← Back</Text>
+          <View style={styles.backBtnContainer}><Ionicons name="chevron-back" size={20} color={theme.primary} /><Text style={[styles.backBtn, { color: theme.primary }]}>Back</Text></View>
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>{contentType === 'movie' ? '🎬 Movies' : '📺 TV Shows'}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name={contentType === 'movie' ? 'film-outline' : 'tv-outline'} size={20} color={theme.text} style={{ marginRight: 6 }} /><Text style={[styles.headerTitle, { color: theme.text }]}>{contentType === 'movie' ? 'Movies' : 'TV Shows'}</Text></View>
         <TouchableOpacity onPress={() => { setActiveListTab('watchlist'); setCurrentScreen(SCREENS.LISTS); }}>
-          <Text style={{ color: theme.text }}>📝 {watchlist.length}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="bookmark-outline" size={16} color={theme.text} style={{ marginRight: 4 }} /><Text style={{ color: theme.text }}>{watchlist.length}</Text></View>
         </TouchableOpacity>
       </View>
 
@@ -2604,7 +2616,7 @@ const enterWatchNext = () => {
           style={[styles.filterBarBtn, { backgroundColor: hasActiveFilters() ? theme.primary : theme.surface }]} 
           onPress={() => setShowFilterModal(true)}
         >
-          <Text>⚙️</Text>
+          <Ionicons name="filter" size={18} color={theme.text} />
           <Text style={{ color: hasActiveFilters() ? '#fff' : theme.text, marginLeft: 6, fontWeight: '600' }}>
             Filters {filterCount > 0 ? `(${filterCount})` : ''}
           </Text>
@@ -2622,7 +2634,7 @@ const enterWatchNext = () => {
             <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
               <Text style={[styles.modalTitle, { color: theme.text }]}>Filters</Text>
               <TouchableOpacity onPress={() => setShowFilterModal(false)}>
-                <Text style={{ color: theme.textSecondary, fontSize: 22 }}>✕</Text>
+                <Ionicons name="close" size={22} color={theme.textSecondary} />
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.modalBody}>
@@ -2673,7 +2685,7 @@ const enterWatchNext = () => {
             <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
               <Text style={[styles.modalTitle, { color: theme.text }]}>Sort By</Text>
               <TouchableOpacity onPress={() => setShowSortModal(false)}>
-                <Text style={{ color: theme.textSecondary, fontSize: 22 }}>✕</Text>
+                <Ionicons name="close" size={22} color={theme.textSecondary} />
               </TouchableOpacity>
             </View>
             <View style={styles.modalBody}>
@@ -2681,7 +2693,7 @@ const enterWatchNext = () => {
               {SORT_FIELDS.map((f) => (
                 <TouchableOpacity key={f.id} style={[styles.sortOption, { backgroundColor: sortField === f.id ? theme.primary : theme.card }]} onPress={() => setSortField(f.id)}>
                   <Text style={{ color: sortField === f.id ? '#fff' : theme.textSecondary }}>{f.name}</Text>
-                  {sortField === f.id && <Text style={{ color: '#fff', fontWeight: 'bold' }}>✓</Text>}
+                  {sortField === f.id && <Ionicons name="checkmark" size={18} color="#fff" />}
                 </TouchableOpacity>
               ))}
               <Text style={[styles.filterSectionTitle, { color: theme.textSecondary, marginTop: 16 }]}>Direction</Text>
@@ -2763,7 +2775,7 @@ const enterWatchNext = () => {
         </ScrollView>
       ) : (
         <View style={styles.centered}>
-          <Text style={styles.emptyEmoji}>🔍</Text>
+          <Ionicons name="search" size={48} color={theme.textMuted} />
           <Text style={[styles.emptyTitle, { color: theme.text }]}>No results found</Text>
           <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>Try adjusting your filters</Text>
           <TouchableOpacity style={[styles.emptyButton, { backgroundColor: theme.primary }]} onPress={() => { resetFilters(); fetchContent(contentType, [], null, null, sortField, sortDirection); }}>
@@ -2776,15 +2788,15 @@ const enterWatchNext = () => {
         <View style={[styles.bottomBar, { backgroundColor: theme.background, borderTopColor: theme.border }]}>
           <View style={styles.buttons}>
             <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.skip }]} onPress={() => handleSwipe('left')}>
-              <Text style={styles.actionIcon}>✕</Text>
+              <Ionicons name="close" size={28} color="#fff" />
               <Text style={styles.actionLabel}>Skip</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.secondary }]} onPress={() => handleSwipe('up')}>
-              <Text style={styles.actionIcon}>👍</Text>
+              <Ionicons name="heart-outline" size={28} color="#fff" />
               <Text style={styles.actionLabel}>Liked</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.primary }]} onPress={() => handleSwipe('right')}>
-              <Text style={styles.actionIcon}>♥</Text>
+              <Ionicons name="bookmark" size={28} color="#fff" />
               <Text style={styles.actionLabel}>Watch</Text>
             </TouchableOpacity>
           </View>
