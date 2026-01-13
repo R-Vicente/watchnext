@@ -6,20 +6,13 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons, MaterialCommunityIcons, MaterialIcons, Feather, FontAwesome5 } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
+import VNIcon, { VN_COLORS } from './src/components/VNIcon';
 import { TMDB_API_KEY } from './src/config/constants';
 
-// Icon component for consistent styling
-const Icon = ({ name, family = 'Ionicons', size = 24, color = '#fff', style }) => {
-  const families = {
-    Ionicons,
-    MaterialCommunityIcons,
-    MaterialIcons,
-    Feather,
-    FontAwesome5,
-  };
-  const IconComponent = families[family] || Ionicons;
-  return <IconComponent name={name} size={size} color={color} style={style} />;
+// Legacy Icon component (kept for compatibility with Ionicons where VNIcon not available)
+const Icon = ({ name, size = 24, color = '#fff', style }) => {
+  return <Ionicons name={name} size={size} color={color} style={style} />;
 };
 
 const { width, height } = Dimensions.get('window');
@@ -69,16 +62,34 @@ const SCREENS = {
 
 const THEMES = {
   dark: {
-    background: '#121212', surface: '#1e1e1e', card: '#1a1a1a',
-    text: '#ffffff', textSecondary: '#999999', textMuted: '#666666',
-    border: '#333333', primary: '#4CAF50', secondary: '#FFB300',
-    danger: '#E53935', skip: '#424242',
+    background: '#0E1117',      // Deep Navy
+    surface: '#1A1F26',         // Charcoal
+    card: '#1A1F26',
+    text: '#FFFFFF',
+    textSecondary: '#A3A8B4',
+    textMuted: '#5E6575',
+    border: '#2A2F36',
+    primary: '#8A4FFF',         // Electric Purple
+    secondary: '#00C2CB',       // Cyan
+    danger: '#E74C3C',
+    success: '#2ECC71',
+    warning: '#F1C40F',
+    skip: '#2A2F36',
   },
   light: {
-    background: '#f5f5f5', surface: '#ffffff', card: '#ffffff',
-    text: '#1a1a1a', textSecondary: '#666666', textMuted: '#999999',
-    border: '#e0e0e0', primary: '#4CAF50', secondary: '#FFB300',
-    danger: '#E53935', skip: '#9e9e9e',
+    background: '#FFFFFF',      // Pure White
+    surface: '#F8FAFC',         // Soft Grey
+    card: '#FFFFFF',
+    text: '#1A1F26',
+    textSecondary: '#64748B',
+    textMuted: '#94A3B8',
+    border: '#E2E8F0',
+    primary: '#7C3AED',         // Deep Violet
+    secondary: '#0891B2',       // Teal
+    danger: '#E74C3C',
+    success: '#2ECC71',
+    warning: '#F1C40F',
+    skip: '#E2E8F0',
   },
 };
 
@@ -91,97 +102,97 @@ const THEMES = {
 const MOODS = [
   {
     id: 'laugh',
-    icon: { name: 'happy-outline', family: 'Ionicons' },
+    icon: 'comedy',
     label: 'Laugh',
     genres: [35],
     subOptions: [
-      { id: 'any', label: 'Any comedy', icon: { name: 'theater-masks', family: 'FontAwesome5' }, genres: [35] },
-      { id: 'romantic', label: 'Romantic', icon: { name: 'heart-outline', family: 'Ionicons' }, genres: [35, 10749] },
-      { id: 'action', label: 'Action comedy', icon: { name: 'flash-outline', family: 'Ionicons' }, genres: [35, 28] },
-      { id: 'dark', label: 'Dark / Satire', icon: { name: 'moon-outline', family: 'Ionicons' }, genres: [35], keywords: 'dark comedy,satire' },
-      { id: 'family', label: 'Family friendly', icon: { name: 'people-outline', family: 'Ionicons' }, genres: [35, 10751] },
+      { id: 'any', label: 'Any comedy', icon: 'comedy', genres: [35] },
+      { id: 'romantic', label: 'Romantic', icon: 'romance', genres: [35, 10749] },
+      { id: 'action', label: 'Action comedy', icon: 'action', genres: [35, 28] },
+      { id: 'dark', label: 'Dark / Satire', icon: 'thriller', genres: [35], keywords: 'dark comedy,satire' },
+      { id: 'family', label: 'Family friendly', icon: 'home', genres: [35, 10751] },
     ]
   },
   {
     id: 'think',
-    icon: { name: 'bulb-outline', family: 'Ionicons' },
+    icon: 'thriller',
     label: 'Think',
     genres: [18, 9648],
     subOptions: [
-      { id: 'any', label: 'Any', icon: { name: 'theater-masks', family: 'FontAwesome5' }, genres: [18, 9648] },
-      { id: 'mystery', label: 'Mystery / Whodunit', icon: { name: 'search-outline', family: 'Ionicons' }, genres: [9648] },
-      { id: 'psychological', label: 'Psychological', icon: { name: 'git-branch-outline', family: 'Ionicons' }, genres: [18, 53] },
-      { id: 'documentary', label: 'Documentary', icon: { name: 'videocam-outline', family: 'Ionicons' }, genres: [99] },
-      { id: 'historical', label: 'Historical', icon: { name: 'book-outline', family: 'Ionicons' }, genres: [18, 36] },
+      { id: 'any', label: 'Any', icon: 'thriller', genres: [18, 9648] },
+      { id: 'mystery', label: 'Mystery / Whodunit', icon: 'search', genres: [9648] },
+      { id: 'psychological', label: 'Psychological', icon: 'bulb', genres: [18, 53] },
+      { id: 'documentary', label: 'Documentary', icon: 'film', genres: [99] },
+      { id: 'historical', label: 'Historical', icon: 'calendar', genres: [18, 36] },
     ]
   },
   {
     id: 'adrenaline',
-    icon: { name: 'flash-outline', family: 'Ionicons' },
+    icon: 'action',
     label: 'Adrenaline',
     genres: [28, 53],
     subOptions: [
-      { id: 'any', label: 'Any action', icon: { name: 'theater-masks', family: 'FontAwesome5' }, genres: [28, 53] },
-      { id: 'pure', label: 'Pure action', icon: { name: 'fitness-outline', family: 'Ionicons' }, genres: [28] },
-      { id: 'thriller', label: 'Thriller / Suspense', icon: { name: 'alert-circle-outline', family: 'Ionicons' }, genres: [53] },
-      { id: 'crime', label: 'Crime / Heist', icon: { name: 'briefcase-outline', family: 'Ionicons' }, genres: [80, 53] },
-      { id: 'war', label: 'War', icon: { name: 'shield-outline', family: 'Ionicons' }, genres: [10752, 28] },
+      { id: 'any', label: 'Any action', icon: 'action', genres: [28, 53] },
+      { id: 'pure', label: 'Pure action', icon: 'action', genres: [28] },
+      { id: 'thriller', label: 'Thriller / Suspense', icon: 'alert', genres: [53] },
+      { id: 'crime', label: 'Crime / Heist', icon: 'thriller', genres: [80, 53] },
+      { id: 'war', label: 'War', icon: 'target', genres: [10752, 28] },
     ]
   },
   {
     id: 'cry',
-    icon: { name: 'heart-outline', family: 'Ionicons' },
+    icon: 'drama',
     label: 'Feel',
     genres: [18, 10749],
     subOptions: [
-      { id: 'any', label: 'Any drama', icon: { name: 'theater-masks', family: 'FontAwesome5' }, genres: [18] },
-      { id: 'romance', label: 'Romance', icon: { name: 'heart', family: 'Ionicons' }, genres: [10749] },
-      { id: 'family', label: 'Family / Heartwarming', icon: { name: 'home-outline', family: 'Ionicons' }, genres: [18, 10751] },
-      { id: 'tragedy', label: 'Tragedy / Heavy', icon: { name: 'heart-dislike-outline', family: 'Ionicons' }, genres: [18] },
-      { id: 'inspiring', label: 'Inspiring / Uplifting', icon: { name: 'sparkles-outline', family: 'Ionicons' }, genres: [18], keywords: 'inspiring,uplifting' },
+      { id: 'any', label: 'Any drama', icon: 'drama', genres: [18] },
+      { id: 'romance', label: 'Romance', icon: 'romance', genres: [10749] },
+      { id: 'family', label: 'Family / Heartwarming', icon: 'home', genres: [18, 10751] },
+      { id: 'tragedy', label: 'Tragedy / Heavy', icon: 'drama', genres: [18] },
+      { id: 'inspiring', label: 'Inspiring / Uplifting', icon: 'sparkles', genres: [18], keywords: 'inspiring,uplifting' },
     ]
   },
   {
     id: 'escape',
-    icon: { name: 'rocket-outline', family: 'Ionicons' },
+    icon: 'fantasy',
     label: 'Escape',
     genres: [878, 14],
     subOptions: [
-      { id: 'any', label: 'Any', icon: { name: 'theater-masks', family: 'FontAwesome5' }, genres: [878, 14, 12] },
-      { id: 'scifi', label: 'Sci-Fi', icon: { name: 'planet-outline', family: 'Ionicons' }, genres: [878] },
-      { id: 'fantasy', label: 'Fantasy', icon: { name: 'sparkles', family: 'Ionicons' }, genres: [14] },
-      { id: 'adventure', label: 'Adventure', icon: { name: 'compass-outline', family: 'Ionicons' }, genres: [12] },
-      { id: 'superhero', label: 'Superhero', icon: { name: 'shield-checkmark-outline', family: 'Ionicons' }, genres: [28, 878], keywords: 'superhero,marvel,dc' },
+      { id: 'any', label: 'Any', icon: 'fantasy', genres: [878, 14, 12] },
+      { id: 'scifi', label: 'Sci-Fi', icon: 'sparkles', genres: [878] },
+      { id: 'fantasy', label: 'Fantasy', icon: 'fantasy', genres: [14] },
+      { id: 'adventure', label: 'Adventure', icon: 'target', genres: [12] },
+      { id: 'superhero', label: 'Superhero', icon: 'action', genres: [28, 878], keywords: 'superhero,marvel,dc' },
     ]
   },
   {
     id: 'chill',
-    icon: { name: 'cafe-outline', family: 'Ionicons' },
+    icon: 'comedy',
     label: 'Chill',
     genres: [35, 10749],
     subOptions: [
-      { id: 'any', label: 'Easy watch', icon: { name: 'theater-masks', family: 'FontAwesome5' }, genres: [35, 10749] },
-      { id: 'feelgood', label: 'Feel-good', icon: { name: 'sunny-outline', family: 'Ionicons' }, genres: [35, 10749] },
-      { id: 'animated', label: 'Animated', icon: { name: 'color-palette-outline', family: 'Ionicons' }, genres: [16] },
-      { id: 'music', label: 'Musical', icon: { name: 'musical-notes-outline', family: 'Ionicons' }, genres: [10402] },
+      { id: 'any', label: 'Easy watch', icon: 'comedy', genres: [35, 10749] },
+      { id: 'feelgood', label: 'Feel-good', icon: 'comedy', genres: [35, 10749] },
+      { id: 'animated', label: 'Animated', icon: 'star', genres: [16] },
+      { id: 'music', label: 'Musical', icon: 'play', genres: [10402] },
     ]
   },
   {
     id: 'scare',
-    icon: { name: 'skull-outline', family: 'Ionicons' },
+    icon: 'horror',
     label: 'Scare',
     genres: [27],
     subOptions: [
-      { id: 'any', label: 'Any horror', icon: { name: 'theater-masks', family: 'FontAwesome5' }, genres: [27] },
-      { id: 'supernatural', label: 'Supernatural', icon: { name: 'skull-outline', family: 'Ionicons' }, genres: [27], keywords: 'supernatural,ghost,demon' },
-      { id: 'slasher', label: 'Slasher', icon: { name: 'cut-outline', family: 'Ionicons' }, genres: [27], keywords: 'slasher' },
-      { id: 'psychological', label: 'Psychological', icon: { name: 'bulb-outline', family: 'Ionicons' }, genres: [27, 53] },
-      { id: 'thriller', label: 'Creepy thriller', icon: { name: 'eye-outline', family: 'Ionicons' }, genres: [53, 9648] },
+      { id: 'any', label: 'Any horror', icon: 'horror', genres: [27] },
+      { id: 'supernatural', label: 'Supernatural', icon: 'horror', genres: [27], keywords: 'supernatural,ghost,demon' },
+      { id: 'slasher', label: 'Slasher', icon: 'alert', genres: [27], keywords: 'slasher' },
+      { id: 'psychological', label: 'Psychological', icon: 'bulb', genres: [27, 53] },
+      { id: 'thriller', label: 'Creepy thriller', icon: 'thriller', genres: [53, 9648] },
     ]
   },
   {
     id: 'surprise',
-    icon: { name: 'dice-outline', family: 'Ionicons' },
+    icon: 'shuffle',
     label: 'Surprise me',
     genres: [],
     subOptions: null
@@ -231,23 +242,23 @@ const ONBOARDING_INITIAL_COUNT = 10; // First time: 10 items
 const ONBOARDING_FOLLOWUP_COUNT = 3; // Subsequent: 3 items
 
 const DURATION_OPTIONS = [
-  { id: 'short', label: '< 90 min', icon: { name: 'flash-outline', family: 'Ionicons' }, max: 90 },
-  { id: 'medium', label: '90-120 min', icon: { name: 'film-outline', family: 'Ionicons' }, min: 90, max: 120 },
-  { id: 'long', label: '2h+', icon: { name: 'time-outline', family: 'Ionicons' }, min: 120 },
-  { id: 'any', label: 'Any length', icon: { name: 'infinite-outline', family: 'Ionicons' }, min: 0, max: 999 },
+  { id: 'short', label: '< 90 min', icon: 'movieShort', max: 90 },
+  { id: 'medium', label: '90-120 min', icon: 'movieMedium', min: 90, max: 120 },
+  { id: 'long', label: '2h+', icon: 'movieLong', min: 120 },
+  { id: 'any', label: 'Any length', icon: 'clock', min: 0, max: 999 },
 ];
 
 const COMMITMENT_OPTIONS = [
-  { id: 'one', label: '1 episode', icon: { name: 'tv-outline', family: 'Ionicons' }, seasons: 1 },
-  { id: 'night', label: 'One night', icon: { name: 'moon-outline', family: 'Ionicons' }, seasons: 1 },
-  { id: 'weekend', label: 'Weekend binge', icon: { name: 'bed-outline', family: 'Ionicons' }, seasons: [1, 2] },
-  { id: 'long', label: 'Long journey', icon: { name: 'map-outline', family: 'Ionicons' }, seasons: 3 },
+  { id: 'one', label: '1 episode', icon: 'tvShort', seasons: 1 },
+  { id: 'night', label: 'One night', icon: 'tvMedium', seasons: 1 },
+  { id: 'weekend', label: 'Weekend binge', icon: 'tvLong', seasons: [1, 2] },
+  { id: 'long', label: 'Long journey', icon: 'streaming', seasons: 3 },
 ];
 
 const LANGUAGE_OPTIONS = [
-  { id: 'any', label: 'Any language', icon: { name: 'globe-outline', family: 'Ionicons' } },
-  { id: 'original', label: 'English only', icon: { name: 'language-outline', family: 'Ionicons' }, code: 'en' },
-  { id: 'local', label: 'My language', icon: { name: 'home-outline', family: 'Ionicons' } },
+  { id: 'any', label: 'Any language', icon: 'streaming' },
+  { id: 'original', label: 'English only', icon: 'film' },
+  { id: 'local', label: 'My language', icon: 'home' },
 ];
 
 // ============================================
@@ -1488,7 +1499,7 @@ const enterWatchNext = () => {
   if (currentScreen === SCREENS.LOADING) {
     return (
       <View style={[styles.splashContainer, { backgroundColor: theme.background }]}>
-        <Ionicons name="play-circle" size={80} color={theme.primary} style={{ marginBottom: 20 }} />
+        <Image source={require('./logo.png')} style={{ width: 120, height: 120, marginBottom: 16 }} resizeMode="contain" />
         <Text style={[styles.splashTitle, { color: theme.text }]}>WatchNext</Text>
         <Text style={[styles.splashSubtitle, { color: theme.textSecondary }]}>We pick, you watch</Text>
         <ActivityIndicator size="large" color={theme.primary} style={{ marginTop: 40 }} />
@@ -1504,16 +1515,16 @@ const enterWatchNext = () => {
           <View style={styles.homeHeader}>
             <View style={{ width: 40 }} />
             <View style={styles.logoContainer}>
-              <Ionicons name="play-circle" size={28} color={theme.primary} style={{ marginRight: 8 }} />
+              <Image source={require('./logo.png')} style={{ width: 32, height: 32, marginRight: 8 }} resizeMode="contain" />
               <Text style={[styles.logoTitle, { color: theme.text }]}>WatchNext</Text>
             </View>
             <TouchableOpacity onPress={() => setCurrentScreen(SCREENS.SETTINGS)} style={styles.settingsBtn}>
-              <Ionicons name="settings-outline" size={24} color={theme.text} />
+              <VNIcon name="settings" size={24} color={theme.text} />
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={[styles.searchBar, { backgroundColor: theme.surface }]} onPress={() => setCurrentScreen(SCREENS.SEARCH)}>
-            <Ionicons name="search-outline" size={20} color={theme.textMuted} style={{ marginRight: 12 }} />
+            <VNIcon name="search" size={20} color={theme.textMuted} style={{ marginRight: 12 }} />
             <Text style={[styles.searchPlaceholder, { color: theme.textMuted }]}>Search movies & TV shows...</Text>
           </TouchableOpacity>
 
@@ -1521,52 +1532,52 @@ const enterWatchNext = () => {
             <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>What's Next?</Text>
 
             <TouchableOpacity style={[styles.menuButton, { backgroundColor: theme.surface }]} onPress={enterWatchNext}>
-              <Ionicons name="compass" size={32} color={theme.primary} style={{ marginRight: 14 }} />
+              <VNIcon name="sparkles" size={32} color={theme.primary} style={{ marginRight: 14 }} />
               <View style={styles.menuText}>
                 <Text style={styles.watchNextTitle}>WatchNext</Text>
                 <Text style={styles.watchNextSubtitle}>We pick, you watch</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
+              <VNIcon name="chevronRight" size={20} color={theme.textMuted} />
             </TouchableOpacity>
           </View>
 
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>Discover</Text>
             <TouchableOpacity style={[styles.menuButton, { backgroundColor: theme.surface }]} onPress={() => startSwiping('movie')}>
-              <Ionicons name="film-outline" size={28} color={theme.text} style={{ marginRight: 14 }} />
+              <VNIcon name="film" size={28} color={theme.text} style={{ marginRight: 14 }} />
               <View style={styles.menuText}>
                 <Text style={[styles.menuTitle, { color: theme.text }]}>Movies</Text>
                 <Text style={[styles.menuSubtitle, { color: theme.textSecondary }]}>Explore and save for later</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
+              <VNIcon name="chevronRight" size={20} color={theme.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity style={[styles.menuButton, { backgroundColor: theme.surface }]} onPress={() => startSwiping('tv')}>
-              <Ionicons name="tv-outline" size={28} color={theme.text} style={{ marginRight: 14 }} />
+              <VNIcon name="tv" size={28} color={theme.text} style={{ marginRight: 14 }} />
               <View style={styles.menuText}>
                 <Text style={[styles.menuTitle, { color: theme.text }]}>TV Shows</Text>
                 <Text style={[styles.menuSubtitle, { color: theme.textSecondary }]}>Find your next binge</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
+              <VNIcon name="chevronRight" size={20} color={theme.textMuted} />
             </TouchableOpacity>
           </View>
 
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>My Lists</Text>
             <TouchableOpacity style={[styles.menuButton, { backgroundColor: theme.surface }]} onPress={() => { setActiveListTab('watchlist'); setCurrentScreen(SCREENS.LISTS); }}>
-              <Ionicons name="bookmark-outline" size={28} color={theme.text} style={{ marginRight: 14 }} />
+              <VNIcon name="watchlist" size={28} color={theme.text} style={{ marginRight: 14 }} />
               <View style={styles.menuText}>
                 <Text style={[styles.menuTitle, { color: theme.text }]}>Watchlist</Text>
                 <Text style={[styles.menuSubtitle, { color: theme.textSecondary }]}>{watchlist.length} titles to watch</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
+              <VNIcon name="chevronRight" size={20} color={theme.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity style={[styles.menuButton, { backgroundColor: theme.surface }]} onPress={() => { setActiveListTab('liked'); setCurrentScreen(SCREENS.LISTS); }}>
-              <Ionicons name="heart-outline" size={28} color={theme.text} style={{ marginRight: 14 }} />
+              <VNIcon name="heart" size={28} color={theme.text} style={{ marginRight: 14 }} />
               <View style={styles.menuText}>
                 <Text style={[styles.menuTitle, { color: theme.text }]}>Liked</Text>
                 <Text style={[styles.menuSubtitle, { color: theme.textSecondary }]}>{likedList.length} titles you loved</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
+              <VNIcon name="chevronRight" size={20} color={theme.textMuted} />
             </TouchableOpacity>
           </View>
 
@@ -2101,7 +2112,7 @@ const enterWatchNext = () => {
                   style={[styles.recommendTypeCard, { backgroundColor: theme.surface }]} 
                   onPress={() => startRecommendation('movie')}
                 >
-                  <Ionicons name="film-outline" size={40} color={theme.primary} style={{ marginBottom: 8 }} />
+                  <VNIcon name="film" size={40} color={theme.primary} style={{ marginBottom: 8 }} />
                   <Text style={[styles.recommendTypeLabel, { color: theme.text }]}>Movie</Text>
                   <Text style={[styles.recommendTypeDesc, { color: theme.textSecondary }]}>Single sitting</Text>
                 </TouchableOpacity>
@@ -2110,7 +2121,7 @@ const enterWatchNext = () => {
                   style={[styles.recommendTypeCard, { backgroundColor: theme.surface }]} 
                   onPress={() => startRecommendation('tv')}
                 >
-                  <Ionicons name="tv-outline" size={40} color={theme.secondary} style={{ marginBottom: 8 }} />
+                  <VNIcon name="tv" size={40} color={theme.secondary} style={{ marginBottom: 8 }} />
                   <Text style={[styles.recommendTypeLabel, { color: theme.text }]}>TV Show</Text>
                   <Text style={[styles.recommendTypeDesc, { color: theme.textSecondary }]}>Series journey</Text>
                 </TouchableOpacity>
@@ -2179,7 +2190,7 @@ const enterWatchNext = () => {
                       style={[styles.onboardingBtn, styles.onboardingBtnDislike, { backgroundColor: theme.danger }]}
                       onPress={() => handleOnboardingRate(onboardingMovies[onboardingIndex].id, 'dislike')}
                     >
-                      <Ionicons name="thumbs-down" size={24} color="#fff" />
+                      <VNIcon name="thumbsDown" size={24} color="#fff" />
                       <Text style={styles.onboardingBtnText}>Not for me</Text>
                     </TouchableOpacity>
 
@@ -2187,7 +2198,7 @@ const enterWatchNext = () => {
                       style={[styles.onboardingBtn, styles.onboardingBtnSkip, { backgroundColor: theme.surface, borderColor: theme.border }]}
                       onPress={() => handleOnboardingRate(onboardingMovies[onboardingIndex].id, 'skip')}
                     >
-                      <Ionicons name="help-circle-outline" size={24} color={theme.textSecondary} />
+                      <VNIcon name="helpCircle" size={24} color={theme.textSecondary} />
                       <Text style={[styles.onboardingBtnText, { color: theme.textSecondary }]}>Haven't seen</Text>
                     </TouchableOpacity>
 
@@ -2195,7 +2206,7 @@ const enterWatchNext = () => {
                       style={[styles.onboardingBtn, styles.onboardingBtnLike, { backgroundColor: theme.primary }]}
                       onPress={() => handleOnboardingRate(onboardingMovies[onboardingIndex].id, 'like')}
                     >
-                      <Ionicons name="thumbs-up" size={24} color="#fff" />
+                      <VNIcon name="thumbsUp" size={24} color="#fff" />
                       <Text style={styles.onboardingBtnText}>Loved it</Text>
                     </TouchableOpacity>
                   </View>
@@ -2247,7 +2258,7 @@ const enterWatchNext = () => {
                       }
                     }}
                   >
-                    <Icon name={mood.icon.name} family={mood.icon.family} size={32} color={theme.text} />
+                    <VNIcon name={mood.icon} size={32} color={theme.text} />
                     <Text style={[styles.moodLabel, { color: theme.text }]}>{mood.label}</Text>
                   </TouchableOpacity>
                 ))}
@@ -2275,7 +2286,7 @@ const enterWatchNext = () => {
                       style={styles.selectedMoodHeader}
                       onPress={() => setRecommendMood(null)}
                     >
-                      <Icon name={selectedMood?.icon?.name} family={selectedMood?.icon?.family} size={32} color={theme.text} />
+                      <VNIcon name={selectedMood?.icon} size={32} color={theme.text} />
                       <Text style={[styles.selectedMoodLabel, { color: theme.text }]}>{selectedMood?.label}</Text>
                       <Text style={[styles.changeMood, { color: theme.primary }]}>Change</Text>
                     </TouchableOpacity>
@@ -2295,7 +2306,7 @@ const enterWatchNext = () => {
                               setRecommendStep(2);
                             }}
                           >
-                            <Icon name={sub.icon.name} family={sub.icon.family} size={24} color={theme.text} style={{ marginRight: 12 }} />
+                            <VNIcon name={sub.icon} size={24} color={theme.text} style={{ marginRight: 12 }} />
                             <Text style={[styles.subMoodLabel, { color: theme.text }]}>{sub.label}</Text>
                             <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
                           </TouchableOpacity>
@@ -2344,7 +2355,7 @@ const enterWatchNext = () => {
                     ]}
                     onPress={() => setRecommendDuration(option.id)}
                   >
-                    <Icon name={option.icon.name} family={option.icon.family} size={28} color={recommendDuration === option.id ? '#fff' : theme.text} />
+                    <VNIcon name={option.icon} size={28} color={recommendDuration === option.id ? '#fff' : theme.text} />
                     <Text style={[styles.durationLabel, { color: recommendDuration === option.id ? '#fff' : theme.text }]}>{option.label}</Text>
                   </TouchableOpacity>
                 ))}
@@ -2389,7 +2400,7 @@ const enterWatchNext = () => {
                     ]}
                     onPress={() => setRecommendLanguage(option.id)}
                   >
-                    <Icon name={option.icon.name} family={option.icon.family} size={24} color={recommendLanguage === option.id ? '#fff' : theme.text} />
+                    <VNIcon name={option.icon} size={24} color={recommendLanguage === option.id ? '#fff' : theme.text} />
                     <Text style={[styles.languageLabel, { color: recommendLanguage === option.id ? '#fff' : theme.text }]}>{option.label}</Text>
                   </TouchableOpacity>
                 ))}
@@ -2789,15 +2800,15 @@ const enterWatchNext = () => {
         <View style={[styles.bottomBar, { backgroundColor: theme.background, borderTopColor: theme.border }]}>
           <View style={styles.buttons}>
             <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.skip }]} onPress={() => handleSwipe('left')}>
-              <Ionicons name="close" size={28} color="#fff" />
+              <VNIcon name="close" size={28} color="#fff" />
               <Text style={styles.actionLabel}>Skip</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.secondary }]} onPress={() => handleSwipe('up')}>
-              <Ionicons name="heart-outline" size={28} color="#fff" />
+              <VNIcon name="heart" size={28} color="#fff" />
               <Text style={styles.actionLabel}>Liked</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.primary }]} onPress={() => handleSwipe('right')}>
-              <Ionicons name="bookmark" size={28} color="#fff" />
+              <VNIcon name="watchlist" size={28} color="#fff" />
               <Text style={styles.actionLabel}>Watch</Text>
             </TouchableOpacity>
           </View>
