@@ -256,9 +256,9 @@ const COMMITMENT_OPTIONS = [
 ];
 
 const LANGUAGE_OPTIONS = [
-  { id: 'any', label: 'Any language', icon: 'streaming' },
-  { id: 'original', label: 'English only', icon: 'film' },
-  { id: 'local', label: 'My language', icon: 'home' },
+  { id: 'any', label: 'Any language', icon: 'globe' },
+  { id: 'original', label: 'English only', icon: 'language' },
+  { id: 'local', label: 'My language', icon: 'flag' },
 ];
 
 // ============================================
@@ -2254,24 +2254,30 @@ const enterWatchNext = () => {
               <Text style={[styles.recommendQuestion, { color: theme.text }]}>How do you want to feel?</Text>
               
               <View style={styles.moodGrid}>
-                {MOODS.map((mood) => (
-                  <TouchableOpacity 
-                    key={mood.id}
-                    style={[styles.moodCard, { backgroundColor: theme.surface }]} 
-                    onPress={() => {
-                      if (mood.id === 'surprise' || !mood.subOptions) {
-                        setRecommendMood(mood.id);
-                        setRecommendSubMood(null);
-                        setRecommendStep(2);
-                      } else {
-                        setRecommendMood(mood.id);
-                      }
-                    }}
-                  >
-                    <VNIcon name={mood.icon} size={32} color={theme.text} />
-                    <Text style={[styles.moodLabel, { color: theme.text }]}>{mood.label}</Text>
-                  </TouchableOpacity>
-                ))}
+                {MOODS.map((mood, index) => {
+                  const moodColors = [theme.primary, theme.secondary, '#E74C3C', '#F39C12', '#9B59B6', '#1ABC9C', '#E74C3C', theme.primary];
+                  const moodColor = moodColors[index % moodColors.length];
+                  return (
+                    <TouchableOpacity
+                      key={mood.id}
+                      style={[styles.moodCard, { backgroundColor: theme.surface }]}
+                      onPress={() => {
+                        if (mood.id === 'surprise' || !mood.subOptions) {
+                          setRecommendMood(mood.id);
+                          setRecommendSubMood(null);
+                          setRecommendStep(2);
+                        } else {
+                          setRecommendMood(mood.id);
+                        }
+                      }}
+                    >
+                      <View style={[styles.moodIconContainer, { backgroundColor: moodColor + '20' }]}>
+                        <VNIcon name={mood.icon} size={28} color={moodColor} />
+                      </View>
+                      <Text style={[styles.moodLabel, { color: theme.text }]}>{mood.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
           )}
@@ -2296,7 +2302,9 @@ const enterWatchNext = () => {
                       style={styles.selectedMoodHeader}
                       onPress={() => setRecommendMood(null)}
                     >
-                      <VNIcon name={selectedMood?.icon} size={32} color={theme.text} />
+                      <View style={[styles.moodIconContainer, { backgroundColor: theme.primary + '20' }]}>
+                        <VNIcon name={selectedMood?.icon} size={24} color={theme.primary} />
+                      </View>
                       <Text style={[styles.selectedMoodLabel, { color: theme.text }]}>{selectedMood?.label}</Text>
                       <Text style={[styles.changeMood, { color: theme.primary }]}>Change</Text>
                     </TouchableOpacity>
@@ -2307,7 +2315,7 @@ const enterWatchNext = () => {
                     
                     <View style={styles.subMoodList}>
                       {selectedMood?.subOptions && selectedMood.subOptions.length > 0 ? (
-                        selectedMood.subOptions.map((sub) => (
+                        selectedMood.subOptions.map((sub, idx) => (
                           <TouchableOpacity
                             key={sub.id}
                             style={[styles.subMoodCard, { backgroundColor: theme.surface }]}
@@ -2316,9 +2324,11 @@ const enterWatchNext = () => {
                               setRecommendStep(2);
                             }}
                           >
-                            <VNIcon name={sub.icon} size={24} color={theme.text} style={{ marginRight: 12 }} />
+                            <View style={[styles.subMoodIconContainer, { backgroundColor: theme.secondary + '20' }]}>
+                              <VNIcon name={sub.icon} size={20} color={theme.secondary} />
+                            </View>
                             <Text style={[styles.subMoodLabel, { color: theme.text }]}>{sub.label}</Text>
-                            <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
+                            <VNIcon name="chevronRight" size={18} color={theme.textMuted} />
                           </TouchableOpacity>
                         ))
                       ) : (
@@ -2326,9 +2336,9 @@ const enterWatchNext = () => {
                           style={[styles.subMoodCard, { backgroundColor: theme.primary }]}
                           onPress={() => setRecommendStep(2)}
                         >
-                          <Ionicons name="sparkles" size={24} color="#fff" style={{ marginRight: 12 }} />
+                          <VNIcon name="sparkles" size={24} color="#fff" style={{ marginRight: 12 }} />
                           <Text style={[styles.subMoodLabel, { color: '#fff' }]}>Continue</Text>
-                          <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.7)" />
+                          <VNIcon name="chevronRight" size={18} color="rgba(255,255,255,0.7)" />
                         </TouchableOpacity>
                       )}
                     </View>
@@ -2355,20 +2365,27 @@ const enterWatchNext = () => {
               </Text>
               
               <View style={styles.durationOptions}>
-                {(recommendType === 'movie' ? DURATION_OPTIONS : COMMITMENT_OPTIONS).map((option) => (
-                  <TouchableOpacity
-                    key={option.id}
-                    style={[
-                      styles.durationCard,
-                      { backgroundColor: theme.surface },
-                      recommendDuration === option.id && { backgroundColor: theme.primary }
-                    ]}
-                    onPress={() => setRecommendDuration(option.id)}
-                  >
-                    <VNIcon name={option.icon} size={28} color={recommendDuration === option.id ? '#fff' : theme.text} />
-                    <Text style={[styles.durationLabel, { color: recommendDuration === option.id ? '#fff' : theme.text }]}>{option.label}</Text>
-                  </TouchableOpacity>
-                ))}
+                {(recommendType === 'movie' ? DURATION_OPTIONS : COMMITMENT_OPTIONS).map((option, idx) => {
+                  const isSelected = recommendDuration === option.id;
+                  const optionColors = [theme.primary, theme.secondary, '#F39C12', '#9B59B6'];
+                  const optionColor = isSelected ? '#fff' : optionColors[idx % optionColors.length];
+                  return (
+                    <TouchableOpacity
+                      key={option.id}
+                      style={[
+                        styles.durationCard,
+                        { backgroundColor: theme.surface },
+                        isSelected && { backgroundColor: theme.primary }
+                      ]}
+                      onPress={() => setRecommendDuration(option.id)}
+                    >
+                      <View style={[styles.durationIconContainer, { backgroundColor: isSelected ? 'rgba(255,255,255,0.2)' : optionColor + '20' }]}>
+                        <VNIcon name={option.icon} size={24} color={optionColor} />
+                      </View>
+                      <Text style={[styles.durationLabel, { color: isSelected ? '#fff' : theme.text }]}>{option.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
 
               <View style={styles.navButtons}>
@@ -2400,20 +2417,27 @@ const enterWatchNext = () => {
               <Text style={[styles.recommendQuestion, { color: theme.text }]}>Language preference?</Text>
               
               <View style={styles.languageOptions}>
-                {LANGUAGE_OPTIONS.map((option) => (
-                  <TouchableOpacity
-                    key={option.id}
-                    style={[
-                      styles.languageCard,
-                      { backgroundColor: theme.surface },
-                      recommendLanguage === option.id && { backgroundColor: theme.primary }
-                    ]}
-                    onPress={() => setRecommendLanguage(option.id)}
-                  >
-                    <VNIcon name={option.icon} size={24} color={recommendLanguage === option.id ? '#fff' : theme.text} />
-                    <Text style={[styles.languageLabel, { color: recommendLanguage === option.id ? '#fff' : theme.text }]}>{option.label}</Text>
-                  </TouchableOpacity>
-                ))}
+                {LANGUAGE_OPTIONS.map((option, idx) => {
+                  const isSelected = recommendLanguage === option.id;
+                  const optionColors = [theme.secondary, theme.primary, '#2ECC71'];
+                  const optionColor = isSelected ? '#fff' : optionColors[idx % optionColors.length];
+                  return (
+                    <TouchableOpacity
+                      key={option.id}
+                      style={[
+                        styles.languageCard,
+                        { backgroundColor: theme.surface },
+                        isSelected && { backgroundColor: theme.primary }
+                      ]}
+                      onPress={() => setRecommendLanguage(option.id)}
+                    >
+                      <View style={[styles.languageIconContainer, { backgroundColor: isSelected ? 'rgba(255,255,255,0.2)' : optionColor + '20' }]}>
+                        <VNIcon name={option.icon} size={20} color={optionColor} />
+                      </View>
+                      <Text style={[styles.languageLabel, { color: isSelected ? '#fff' : theme.text }]}>{option.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
 
               <View style={styles.navButtons}>
@@ -3039,17 +3063,19 @@ const styles = StyleSheet.create({
 
   moodGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'center' },
   moodCard: { width: (width - 76) / 3, alignItems: 'center', padding: 16, borderRadius: 12 },
-  moodEmoji: { fontSize: 28, marginBottom: 6 },
-  moodLabel: { fontSize: 12, fontWeight: '600' },
+  moodIconContainer: { width: 52, height: 52, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+  moodLabel: { fontSize: 12, fontWeight: '600', textAlign: 'center' },
+
+  subMoodIconContainer: { width: 40, height: 40, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
 
   durationOptions: { gap: 12 },
   durationCard: { flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 12 },
-  durationEmoji: { fontSize: 24, marginRight: 14 },
+  durationIconContainer: { width: 48, height: 48, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
   durationLabel: { fontSize: 16, fontWeight: '500' },
 
   languageOptions: { gap: 12 },
   languageCard: { flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 12 },
-  languageEmoji: { fontSize: 24, marginRight: 14 },
+  languageIconContainer: { width: 44, height: 44, borderRadius: 11, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
   languageLabel: { fontSize: 16, fontWeight: '500' },
 
   navButtons: { flexDirection: 'row', marginTop: 24 },

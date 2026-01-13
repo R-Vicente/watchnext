@@ -333,6 +333,26 @@ const ICONS = {
       <Line x1="12" y1="17" x2="12.01" y2="17" stroke={color} />
     </G>
   ),
+
+  // === LANGUAGE/GLOBE ===
+  globe: (color) => (
+    <G>
+      <Circle cx="12" cy="12" r="10" stroke={color} />
+      <Line x1="2" y1="12" x2="22" y2="12" stroke={color} />
+      <Path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" stroke={color} />
+    </G>
+  ),
+  language: (color) => (
+    <G>
+      <Path d="M5 8l6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6" stroke={color} />
+    </G>
+  ),
+  flag: (color) => (
+    <G>
+      <Path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" stroke={color} />
+      <Line x1="4" y1="22" x2="4" y2="15" stroke={color} />
+    </G>
+  ),
 };
 
 // Main VNIcon Component
