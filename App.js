@@ -1531,20 +1531,24 @@ const enterWatchNext = () => {
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>What's Next?</Text>
 
-            <TouchableOpacity style={[styles.menuButton, { backgroundColor: theme.surface }]} onPress={enterWatchNext}>
-              <VNIcon name="sparkles" size={32} color={theme.primary} style={{ marginRight: 14 }} />
-              <View style={styles.menuText}>
-                <Text style={styles.watchNextTitle}>WatchNext</Text>
-                <Text style={styles.watchNextSubtitle}>We pick, you watch</Text>
+            <TouchableOpacity style={[styles.menuButton, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.primary + '40' }]} onPress={enterWatchNext}>
+              <View style={[styles.menuIconContainer, { backgroundColor: theme.primary + '25', width: 48, height: 48 }]}>
+                <VNIcon name="sparkles" size={26} color={theme.primary} />
               </View>
-              <VNIcon name="chevronRight" size={20} color={theme.textMuted} />
+              <View style={styles.menuText}>
+                <Text style={[styles.watchNextTitle, { color: theme.primary }]}>WatchNext</Text>
+                <Text style={[styles.watchNextSubtitle, { color: theme.textSecondary }]}>We pick, you watch</Text>
+              </View>
+              <VNIcon name="chevronRight" size={20} color={theme.primary} />
             </TouchableOpacity>
           </View>
 
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>Discover</Text>
             <TouchableOpacity style={[styles.menuButton, { backgroundColor: theme.surface }]} onPress={() => startSwiping('movie')}>
-              <VNIcon name="film" size={28} color={theme.text} style={{ marginRight: 14 }} />
+              <View style={[styles.menuIconContainer, { backgroundColor: theme.primary + '20' }]}>
+                <VNIcon name="film" size={24} color={theme.primary} />
+              </View>
               <View style={styles.menuText}>
                 <Text style={[styles.menuTitle, { color: theme.text }]}>Movies</Text>
                 <Text style={[styles.menuSubtitle, { color: theme.textSecondary }]}>Explore and save for later</Text>
@@ -1552,7 +1556,9 @@ const enterWatchNext = () => {
               <VNIcon name="chevronRight" size={20} color={theme.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity style={[styles.menuButton, { backgroundColor: theme.surface }]} onPress={() => startSwiping('tv')}>
-              <VNIcon name="tv" size={28} color={theme.text} style={{ marginRight: 14 }} />
+              <View style={[styles.menuIconContainer, { backgroundColor: theme.secondary + '20' }]}>
+                <VNIcon name="tv" size={24} color={theme.secondary} />
+              </View>
               <View style={styles.menuText}>
                 <Text style={[styles.menuTitle, { color: theme.text }]}>TV Shows</Text>
                 <Text style={[styles.menuSubtitle, { color: theme.textSecondary }]}>Find your next binge</Text>
@@ -1564,7 +1570,9 @@ const enterWatchNext = () => {
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>My Lists</Text>
             <TouchableOpacity style={[styles.menuButton, { backgroundColor: theme.surface }]} onPress={() => { setActiveListTab('watchlist'); setCurrentScreen(SCREENS.LISTS); }}>
-              <VNIcon name="watchlist" size={28} color={theme.text} style={{ marginRight: 14 }} />
+              <View style={[styles.menuIconContainer, { backgroundColor: theme.primary + '20' }]}>
+                <VNIcon name="watchlist" size={24} color={theme.primary} />
+              </View>
               <View style={styles.menuText}>
                 <Text style={[styles.menuTitle, { color: theme.text }]}>Watchlist</Text>
                 <Text style={[styles.menuSubtitle, { color: theme.textSecondary }]}>{watchlist.length} titles to watch</Text>
@@ -1572,7 +1580,9 @@ const enterWatchNext = () => {
               <VNIcon name="chevronRight" size={20} color={theme.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity style={[styles.menuButton, { backgroundColor: theme.surface }]} onPress={() => { setActiveListTab('liked'); setCurrentScreen(SCREENS.LISTS); }}>
-              <VNIcon name="heart" size={28} color={theme.text} style={{ marginRight: 14 }} />
+              <View style={[styles.menuIconContainer, { backgroundColor: '#E74C3C20' }]}>
+                <VNIcon name="heart" size={24} color="#E74C3C" />
+              </View>
               <View style={styles.menuText}>
                 <Text style={[styles.menuTitle, { color: theme.text }]}>Liked</Text>
                 <Text style={[styles.menuSubtitle, { color: theme.textSecondary }]}>{likedList.length} titles you loved</Text>
@@ -2614,12 +2624,15 @@ const enterWatchNext = () => {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={[styles.header, { borderBottomColor: theme.border }]}>
-        <TouchableOpacity onPress={() => setCurrentScreen(SCREENS.HOME)}>
+        <TouchableOpacity onPress={() => setCurrentScreen(SCREENS.HOME)} style={{ width: 70 }}>
           <View style={styles.backBtnContainer}><Ionicons name="chevron-back" size={20} color={theme.primary} /><Text style={[styles.backBtn, { color: theme.primary }]}>Back</Text></View>
         </TouchableOpacity>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name={contentType === 'movie' ? 'film-outline' : 'tv-outline'} size={20} color={theme.text} style={{ marginRight: 6 }} /><Text style={[styles.headerTitle, { color: theme.text }]}>{contentType === 'movie' ? 'Movies' : 'TV Shows'}</Text></View>
-        <TouchableOpacity onPress={() => { setActiveListTab('watchlist'); setCurrentScreen(SCREENS.LISTS); }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="bookmark-outline" size={16} color={theme.text} style={{ marginRight: 4 }} /><Text style={{ color: theme.text }}>{watchlist.length}</Text></View>
+        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+          <VNIcon name={contentType === 'movie' ? 'film' : 'tv'} size={20} color={theme.primary} style={{ marginRight: 8 }} />
+          <Text style={[styles.headerTitle, { color: theme.text }]}>{contentType === 'movie' ? 'Movies' : 'TV Shows'}</Text>
+        </View>
+        <TouchableOpacity onPress={() => { setActiveListTab('watchlist'); setCurrentScreen(SCREENS.LISTS); }} style={{ width: 70, alignItems: 'flex-end' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}><VNIcon name="watchlist" size={16} color={theme.text} style={{ marginRight: 4 }} /><Text style={{ color: theme.text }}>{watchlist.length}</Text></View>
         </TouchableOpacity>
       </View>
 
@@ -2830,7 +2843,7 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
 
   // Toast
-  toastContainer: { position: 'absolute', bottom: 100, left: 20, right: 20, padding: 16, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 1000 },
+  toastContainer: { position: 'absolute', bottom: 180, left: 20, right: 20, padding: 16, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 1000 },
   toastMessage: { color: '#fff', fontSize: 14, fontWeight: '500', flex: 1 },
   toastUndoBtn: { marginLeft: 12, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 6 },
   toastUndoText: { color: '#fff', fontSize: 13, fontWeight: '600' },
@@ -2851,6 +2864,7 @@ const styles = StyleSheet.create({
   section: { marginBottom: 24 },
   sectionTitle: { fontSize: 13, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 },
   menuButton: { flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 12, marginBottom: 10 },
+  menuIconContainer: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
   menuEmoji: { fontSize: 28, marginRight: 14 },
   menuText: { flex: 1 },
   menuTitle: { fontSize: 17, fontWeight: '600' },
