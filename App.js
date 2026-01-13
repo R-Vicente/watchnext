@@ -2161,8 +2161,9 @@ const enterWatchNext = () => {
                     </Text>
                     <View style={styles.onboardingMeta}>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Ionicons name="star" size={14} color="#FFD700" style={{ marginRight: 4 }} /><Text style={{ color: theme.textSecondary }}>{onboardingMovies[onboardingIndex]?.vote_average?.toFixed(1)}</Text></View>
-                      </Text>
+                        <Ionicons name="star" size={14} color="#FFD700" style={{ marginRight: 4 }} />
+                        <Text style={{ color: theme.textSecondary }}>{onboardingMovies[onboardingIndex]?.vote_average?.toFixed(1)}</Text>
+                      </View>
                       <Text style={{ color: theme.textSecondary }}>
                         {onboardingMovies[onboardingIndex]?.release_date?.split('-')[0]}
                       </Text>
