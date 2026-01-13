@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="vn-base" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    </symbol>
+</svg>
+
+<style>
+  .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 20px; background: #0E1117; padding: 24px; font-family: sans-serif; color: #A3A8B4; }
+  .icon-card { display: flex; flex-direction: column; align-items: center; gap: 8px; border: 1px solid #1A1F26; padding: 16px; border-radius: 12px; }
+  .vn-icon { width: 24px; height: 24px; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+  .vn-primary { stroke: #8A4FFF; }
+  .vn-secondary { stroke: #00C2CB; }
+  .vn-white { stroke: #FFFFFF; }
+</style>
+
+<div class="icon-grid">
+
+  <div class="icon-card">
+    <svg class="vn-icon vn-primary"><path d="M7 13s1.5 3 5 3 5-3 5-3M9 9h.01M15 9h.01M22 12A10 10 0 1 1 2 12a10 10 0 0 1 20 0z"/></svg>
+    <span>Comédia</span>
+  </div>
+  <div class="icon-card">
+    <svg class="vn-icon vn-white"><path d="M8 15s1.5-2 4-2 4 2 4 2M9 9h.01M15 9h.01M22 12A10 10 0 1 1 2 12a10 10 0 0 1 20 0z"/><path d="M9 15c0 1-1 2-1 2s-1-1-1-2 1-2 1-2 1 1 1 2z" class="vn-secondary"/></svg>
+    <span>Drama</span>
+  </div>
+  <div class="icon-card">
+    <svg class="vn-icon vn-primary"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    <span>Ação</span>
+  </div>
+  <div class="icon-card">
+    <svg class="vn-icon vn-white"><path d="M10 20H4v-6c1 0 2-1 2-2s-1-2-2-2V4h6c0 1 1 2 2 2s2-1 2-2h6v6c-1 0-2 1-2 2s1 2 2 2v6h-6c0-1-1-2-2-2s-2 1-2 2z"/></svg>
+    <span>Thriller</span>
+  </div>
+  <div class="icon-card">
+    <svg class="vn-icon vn-white"><path d="M9 10h.01M15 10h.01M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z"/></svg>
+    <span>Horror</span>
+  </div>
+  <div class="icon-card">
+    <svg class="vn-icon vn-secondary"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    <span>Romance</span>
+  </div>
+  <div class="icon-card">
+    <svg class="vn-icon vn-primary"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/><path d="M5 3l.01.01M19 19l.01.01M19 5l.01.01M5 19l.01.01" class="vn-secondary"/></svg>
+    <span>Fantasia</span>
+  </div>
+
+  <div class="icon-card">
+    <svg class="vn-icon vn-white"><rect x="2" y="2" width="20" height="15" rx="2"/><path d="M7 21h10M12 17v4"/><path d="M7 7h2" class="vn-primary"/></svg>
+    <span>Série Curta</span>
+  </div>
+  <div class="icon-card">
+    <svg class="vn-icon vn-white"><path d="M19.82 2H4.18C2.97 2 2 2.97 2 4.18v15.64C2 21.03 2.97 22 4.18 22h15.64c1.21 0 2.18-.97 2.18-2.18V4.18C22 2.97 21.03 2 19.82 2z"/><path d="M7 2v20M17 2v20M2 7h5M2 12h5M2 17h5M17 7h5M17 12h5M17 17h5M10 10h4" class="vn-primary"/></svg>
+    <span>Filme Longo</span>
+  </div>
+
+  <div class="icon-card">
+    <svg class="vn-icon vn-white"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Home</span>
+  </div>
+  <div class="icon-card">
+    <svg class="vn-icon vn-white"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <span>Pesquisa</span>
+  </div>
+  <div class="icon-card">
+    <svg class="vn-icon vn-white"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+    <span>Watchlist</span>
+  </div>
+  <div class="icon-card">
+    <svg class="vn-icon vn-white"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+    <span>Definições</span>
+  </div>
+
+  <div class="icon-card">
+    <svg class="vn-icon vn-primary"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    <span>Play</span>
+  </div>
+  <div class="icon-card">
+    <svg class="vn-icon vn-white"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <span>Adicionar</span>
+  </div>
+  <div class="icon-card">
+    <svg class="vn-icon vn-white"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+    <span>Shuffle</span>
+  </div>
+  <div class="icon-card">
+    <svg class="vn-icon vn-white"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+    <span>Filtrar</span>
+  </div>
+
+  <div class="icon-card">
+    <svg class="vn-icon vn-secondary"><polyline points="20 6 9 17 4 12"/></svg>
+    <span>Visto</span>
+  </div>
+  <div class="icon-card">
+    <svg class="vn-icon vn-primary"><path d="M12 2A10 10 0 0 1 22 12"/></svg>
+    <span>Em Progresso</span>
+  </div>
+
+  <div class="icon-card">
+    <svg class="vn-icon vn-white"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span>Ano</span>
+  </div>
+  <div class="icon-card">
+    <svg class="vn-icon vn-white"><path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2M2 16v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+    <span>Streaming</span>
+  </div>
+</div>
