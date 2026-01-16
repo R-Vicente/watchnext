@@ -201,13 +201,218 @@ Users can export their music recommendations to playlists:
    - OAuth via Google
    - Create playlist via YouTube Data API
 
-## Previous Work (WatchNext)
+## Previous Work (WatchNext) - EXISTING CODE TO MIGRATE
 
-The original WatchNext app (movies/TV only) is in `/home/user/watchnext/`. It has:
-- Working TMDB integration
-- Mood-based recommendation flow
-- Custom VNIcon component (predecessor to UNIcon)
-- Can be used as reference for the Watch category
+The original WatchNext app (movies/TV only) is in `/home/user/watchnext/`. This code is **fully functional** and should be migrated to UpNext for the "Watch" category.
+
+### Key File: `/home/user/watchnext/App.js`
+
+This is a monolithic file (~3000 lines) containing everything. For UpNext, we'll refactor into modular components.
+
+### TMDB API Integration (Lines 470-535)
+
+```javascript
+// Discover endpoint - main content fetching
+axios.get(`https://api.themoviedb.org/3/discover/${type}`, {
+  params: {
+    api_key: TMDB_API_KEY,
+    language: 'en-US',
+    sort_by: 'popularity.desc',
+    with_genres: genres.join(','),
+    'vote_average.gte': rating,
+    'vote_count.gte': 50,
+  }
+});
+
+// Get details with credits and providers
+axios.get(`https://api.themoviedb.org/3/${type}/${id}`, {
+  params: {
+    api_key: TMDB_API_KEY,
+    append_to_response: 'credits,watch/providers'
+  }
+});
+
+// Get trailers
+axios.get(`https://api.themoviedb.org/3/${type}/${id}/videos`);
+
+// Get similar content
+axios.get(`https://api.themoviedb.org/3/${type}/${id}/similar`);
+
+// Search
+axios.get('https://api.themoviedb.org/3/search/movie');
+axios.get('https://api.themoviedb.org/3/search/tv');
+```
+
+### Mood Definitions (Lines 102-200)
+
+```javascript
+const MOODS = [
+  {
+    id: 'laugh',
+    icon: 'comedy',
+    label: 'Laugh',
+    genres: [35], // Comedy
+    subOptions: [
+      { id: 'any', label: 'Any comedy', genres: [35] },
+      { id: 'romantic', label: 'Romantic', genres: [35, 10749] },
+      { id: 'action', label: 'Action comedy', genres: [35, 28] },
+      { id: 'dark', label: 'Dark / Satire', genres: [35], keywords: 'dark comedy,satire' },
+      { id: 'family', label: 'Family friendly', genres: [35, 10751] },
+    ]
+  },
+  {
+    id: 'think', icon: 'thriller', label: 'Think', genres: [18, 9648],
+    // Mystery, Psychological, Documentary, Historical
+  },
+  {
+    id: 'adrenaline', icon: 'action', label: 'Adrenaline', genres: [28, 53],
+    // Pure action, Thriller, Crime/Heist, War
+  },
+  {
+    id: 'cry', icon: 'drama', label: 'Feel', genres: [18, 10749],
+    // Romance, Family, Tragedy, Inspiring
+  },
+  {
+    id: 'escape', icon: 'fantasy', label: 'Escape', genres: [878, 14],
+    // Sci-Fi, Fantasy, Adventure, Superhero
+  },
+  {
+    id: 'chill', icon: 'comedy', label: 'Chill', genres: [35, 10749],
+    // Feel-good, Animated, Musical
+  },
+  {
+    id: 'scare', icon: 'horror', label: 'Scare', genres: [27],
+    // Supernatural, Slasher, Psychological
+  },
+  {
+    id: 'surprise', icon: 'shuffle', label: 'Surprise me', genres: []
+  },
+];
+```
+
+### Genre IDs (TMDB)
+
+```javascript
+// Movies
+const MOVIE_GENRES = [
+  { id: 28, name: 'Action' }, { id: 12, name: 'Adventure' },
+  { id: 16, name: 'Animation' }, { id: 35, name: 'Comedy' },
+  { id: 80, name: 'Crime' }, { id: 99, name: 'Documentary' },
+  { id: 18, name: 'Drama' }, { id: 10751, name: 'Family' },
+  { id: 14, name: 'Fantasy' }, { id: 36, name: 'History' },
+  { id: 27, name: 'Horror' }, { id: 10402, name: 'Music' },
+  { id: 9648, name: 'Mystery' }, { id: 10749, name: 'Romance' },
+  { id: 878, name: 'Sci-Fi' }, { id: 53, name: 'Thriller' },
+  { id: 10752, name: 'War' }, { id: 37, name: 'Western' },
+];
+
+// TV Shows
+const TV_GENRES = [
+  { id: 10759, name: 'Action & Adventure' }, { id: 16, name: 'Animation' },
+  { id: 35, name: 'Comedy' }, { id: 80, name: 'Crime' },
+  { id: 99, name: 'Documentary' }, { id: 18, name: 'Drama' },
+  { id: 10751, name: 'Family' }, { id: 10762, name: 'Kids' },
+  { id: 9648, name: 'Mystery' }, { id: 10765, name: 'Sci-Fi & Fantasy' },
+];
+```
+
+### Duration Options
+
+```javascript
+const DURATION_OPTIONS = [
+  { id: 'short', label: '< 90 min', icon: 'movieShort', max: 90 },
+  { id: 'medium', label: '90-120 min', icon: 'movieMedium', min: 90, max: 120 },
+  { id: 'long', label: '2h+', icon: 'movieLong', min: 120 },
+  { id: 'any', label: 'Any length', icon: 'clock', min: 0, max: 999 },
+];
+
+const COMMITMENT_OPTIONS = [ // For TV shows
+  { id: 'one', label: '1 episode', icon: 'tvShort', seasons: 1 },
+  { id: 'night', label: 'One night', icon: 'tvMedium', seasons: 1 },
+  { id: 'weekend', label: 'Weekend binge', icon: 'tvLong', seasons: [1, 2] },
+  { id: 'long', label: 'Long journey', icon: 'streaming', seasons: 3 },
+];
+
+const LANGUAGE_OPTIONS = [
+  { id: 'any', label: 'Any language', icon: 'globe' },
+  { id: 'original', label: 'English only', icon: 'language' },
+  { id: 'local', label: 'My language', icon: 'flag' },
+];
+```
+
+### Streaming Providers
+
+```javascript
+const PROVIDERS = [
+  { id: 8, name: 'Netflix' },
+  { id: 9, name: 'Prime Video' },
+  { id: 337, name: 'Disney+' },
+  { id: 384, name: 'HBO Max' },
+  { id: 350, name: 'Apple TV+' },
+  { id: 531, name: 'Paramount+' },
+  { id: 283, name: 'Crunchyroll' },
+];
+```
+
+### Onboarding Content (For initial taste profiling)
+
+```javascript
+const ONBOARDING_CONTENT = {
+  movie: [
+    { id: 299536, title: 'Avengers: Infinity War', genre: 'Action/Superhero' },
+    { id: 27205, title: 'Inception', genre: 'Sci-Fi/Thriller' },
+    { id: 278, title: 'The Shawshank Redemption', genre: 'Drama' },
+    { id: 120, title: 'The Lord of the Rings: Fellowship', genre: 'Fantasy' },
+    { id: 807, title: 'Se7en', genre: 'Thriller/Dark' },
+    // ... more movies for taste profiling
+  ],
+  tv: [
+    { id: 1399, title: 'Game of Thrones', genre: 'Fantasy/Drama' },
+    { id: 1396, title: 'Breaking Bad', genre: 'Crime/Drama' },
+    { id: 66732, title: 'Stranger Things', genre: 'Sci-Fi/Horror' },
+    // ... more TV shows
+  ],
+};
+```
+
+### Key Features Already Implemented
+
+1. **Swipe Interface**: Like Tinder, swipe right to save, left to skip
+2. **Lists Management**: Watch list, Watched list, with AsyncStorage persistence
+3. **Search**: Combined movie + TV search with debouncing
+4. **Details Modal**: Full info, trailers (YouTube), cast, similar content
+5. **Streaming Providers**: Shows where to watch (Netflix, etc.)
+6. **Recommendation Flow**: 3-step wizard (Mood → Sub-mood → Duration)
+7. **Onboarding**: Rate movies to build taste profile
+8. **Dark/Light Theme**: Theme toggle with persistence
+9. **Statistics**: View watching stats and preferences
+
+### Files to Migrate
+
+| WatchNext | UpNext Location | Description |
+|-----------|-----------------|-------------|
+| App.js (lines 24-55) | src/constants/genres.js | Genre definitions |
+| App.js (lines 102-200) | src/constants/moods.js | Mood configurations |
+| App.js (lines 244-262) | src/constants/options.js | Duration, commitment, language |
+| App.js (lines 470-535) | src/services/tmdb.js | TMDB API service |
+| App.js (screens) | src/screens/*.js | Individual screen components |
+| VNIcon.js | src/components/UNIcon.js | Already migrated with new branding |
+
+### API Key Location
+
+Currently in `/home/user/watchnext/src/config/constants.js`:
+```javascript
+export const TMDB_API_KEY = 'your-api-key';
+```
+
+For UpNext, use environment variables:
+```javascript
+// .env (not committed)
+TMDB_API_KEY=your-api-key
+
+// Usage
+import { TMDB_API_KEY } from '@env';
+```
 
 ## Gmail Account
 
